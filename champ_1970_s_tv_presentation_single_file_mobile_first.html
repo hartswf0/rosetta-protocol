@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark light" />
+<title>CHAMP — Stuart Hall Conjunctural Media Analysis (1970s TV)</title>
+<style>
+/* =============================
+   1970s TV • Single‑File Deck
+   Mobile‑first, accessible
+   ============================= */
+:root {
+  /* CRT palette */
+  --bg: #0e0e0f;
+  --ink: #f2efe6;
+  --ink-dim: #ded9c9;
+  --amber: #ffb300;
+  --radar: #8bc34a;
+  --alarm: #e53935;
+  --cool: #77aaff;
+  --accent: #ffd447; /* safety yellow */
+  --panel: #161619;
+  --bezel: #1c1c1f;
+  --glass: rgba(255,255,255,0.06);
+  --line: rgba(255,255,255,0.08);
+  --shadow: rgba(0,0,0,0.55);
+  --brand: #c32f27; /* maple */
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: radial-gradient(100% 100% at 50% 0%, #121214 0%, var(--bg) 60%);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  line-height: 1.45;
+}
+
+/* Frame */
+.wrapper {
+  min-height: 100dvh;
+  padding: env(safe-area-inset-top,12px) env(safe-area-inset-right,12px) env(safe-area-inset-bottom,12px) env(safe-area-inset-left,12px);
+  display: grid;
+  place-items: center;
+}
+.tv {
+  width: min(100%, 980px);
+  background: linear-gradient(180deg, #202024, #141417);
+  border-radius: 28px;
+  box-shadow: 0 10px 30px var(--shadow), inset 0 0 0 2px #0c0c0d, inset 0 0 0 4px #2a2a2e;
+  padding: clamp(10px, 2.5vw, 18px);
+  border: 1px solid #0a0a0b;
+}
+.tv-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px 10px; gap: 8px;
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.brand-badge {
+  width: 12px; height: 12px; border-radius: 2px; background: var(--brand); box-shadow: 0 0 0 2px #5a5a5a inset;
+}
+
+.controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+button.ctrl {
+  -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(180deg, #2a2a2e, #1a1a1d);
+  color: var(--ink);
+  border: 1px solid #33353a;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1;
+  box-shadow: 0 2px 0 #0b0b0d inset, 0 1px 0 #303034;
+}
+button.ctrl:active { transform: translateY(1px); }
+
+.screen {
+  position: relative;
+  border-radius: 18px;
+  background: radial-gradient(120% 120% at 50% 40%, #1a1a1f 0%, #101014 70%);
+  box-shadow: inset 0 0 60px rgba(0,0,0,.85), inset 0 0 0 1px #2a2a2e, 0 0 0 2px #0c0c0d;
+  overflow: clip;
+}
+
+/* Scanlines + bloom */
+.screen::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    repeating-linear-gradient( to bottom, rgba(255,255,255,0.055), rgba(255,255,255,0.055) 1px, transparent 2px, transparent 4px),
+    radial-gradient(100% 160% at 50% 50%, rgba(255,255,255,0.08), transparent 60%);
+  mix-blend-mode: overlay;
+}
+.vignette::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px rgba(0,0,0,.75); }
+
+.viewport {
+  aspect-ratio: 16/10; /* nice for phones landscape + portrait letterbox */
+  width: 100%;
+  display: grid; grid-template-rows: auto 1fr auto;
+}
+
+.statusbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; font-size: 12px; color: var(--ink-dim);
+  border-bottom: 1px dashed var(--line);
+}
+.statusbar .live { color: var(--accent); font-weight: 700; letter-spacing: .05em; }
+
+.slidewrap { position: relative; overflow: hidden; }
+.slide {
+  position: absolute; inset: 0; padding: clamp(14px, 3vw, 22px);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  opacity: 0; transform: translateX(10%); transition: opacity .3s ease, transform .3s ease;
+}
+.slide[aria-current="true"] { opacity: 1; transform: translateX(0); position: relative; }
+
+.slide h1, .slide h2, .slide h3 { margin: 0 0 .4em; line-height: 1.15; }
+.slide h1 { font-size: clamp(20px, 5.6vw, 34px); }
+.slide h2 { font-size: clamp(18px, 4.8vw, 28px); color: var(--amber); }
+.slide h3 { font-size: clamp(16px, 4.2vw, 22px); color: var(--radar); }
+.slide p, .slide li { font-size: clamp(14px, 3.8vw, 18px); }
+.slide p { margin: 0 0 .8em; }
+.slide ul { padding-left: 1.2em; margin: .2em 0 .8em; }
+
+blockquote {
+  margin: .8em 0; padding: .8em 1em; border-left: 4px solid var(--cool);
+  background: rgba(120,140,200,0.08); border-radius: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+blockquote .cap { display: block; color: var(--cool); font-size: .9em; opacity:.9; margin-bottom: .4em; }
+
+.kicker { color: var(--amber); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.meta { color: var(--ink-dim); font-size: 12px; }
+
+/* Timestamp chips */
+.timechips { display: flex; flex-wrap: wrap; gap: 8px; margin: .5em 0 .2em; }
+.timechips a {
+  color: var(--ink);
+  border: 1px solid var(--line); text-decoration: none;
+  padding: 6px 10px; border-radius: 999px; font-size: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.06));
+}
+.timechips a:hover { border-color: var(--cool); }
+
+/* Footer controls */
+.footer {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px;
+  border-top: 1px dashed var(--line);
+  padding: 8px 8px 10px;
+}
+.navbtn {
+  background: none; border: none; color: var(--ink); font-size: 20px; line-height: 1; padding: 6px 10px; border-radius: 10px;
+}
+.navbtn:active { transform: translateY(1px); }
+.progress { height: 6px; background: #0f0f12; border-radius: 999px; overflow: hidden; }
+.progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--brand), var(--accent)); }
+
+/* Notes Drawer */
+.notes {
+  max-height: 0; overflow: hidden; transition: max-height .3s ease; background: #0f0f12; border-top: 1px dashed var(--line);
+}
+.notes.open { max-height: 36vh; }
+.notes .pad { padding: 10px 12px; color: var(--ink-dim); font-size: 14px; }
+.notes h4 { margin: 0 0 .4em; color: var(--amber); }
+
+/* High-contrast mode */
+:root.highcontrast {
+  --bg: #000; --ink: #fff; --ink-dim: #d0d0d0; --line: rgba(255,255,255,.25);
+}
+
+/* Print: single-column cards */
+@media print {
+  body { background: #fff; color: #000; }
+  .tv { box-shadow: none; border: none; background: #fff; }
+  .screen::before, .vignette::after, .statusbar, .footer, .controls { display: none; }
+  .slide { position: static !important; opacity: 1 !important; transform: none !important; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 8px; margin: 10px 0; padding: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <section class="tv" role="application" aria-label="1970s TV Presentation Deck">
+    <header class="tv-header" aria-label="Deck header">
+      <div class="brand" aria-label="Brand">
+        <span class="brand-badge" aria-hidden="true"></span>
+        <span>CHAMP • Stuart Hall • Conjunctural Media Analysis</span>
+      </div>
+      <div class="controls">
+        <button class="ctrl" id="notesToggle" aria-pressed="false" aria-controls="notes">Notes</button>
+        <button class="ctrl" id="crtToggle" aria-pressed="true">CRT FX</button>
+        <button class="ctrl" id="contrastToggle" aria-pressed="false">High Contrast</button>
+      </div>
+    </header>
+
+    <div class="screen vignette" id="screen">
+      <div class="viewport" role="region" aria-label="Slide viewport">
+        <div class="statusbar" aria-live="polite">
+          <div><span class="kicker">Live</span> <span class="live" aria-hidden="true">●</span> 1970s Broadcast Deck</div>
+          <div class="meta" id="crumb">Slide 1 / 14</div>
+        </div>
+
+        <div class="slidewrap" id="slidewrap" aria-live="polite" aria-atomic="true"></div>
+
+        <div class="footer">
+          <button class="navbtn" id="prev" aria-label="Previous slide">⟵</button>
+          <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+          <button class="navbtn" id="next" aria-label="Next slide">⟶</button>
+        </div>
+
+        <aside class="notes" id="notes" aria-hidden="true">
+          <div class="pad" id="notesPad"></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// Utility: create anchor for timestamp chips
+function chip(label, url) {
+  return `<a href="${url}" target="_blank" rel="noopener noreferrer" aria-label="Jump to ${label} on YouTube">${label}</a>`;
+}
+
+// Slides data — each item: {title, html, notes}
+const slides = [
+  {
+    title: "Title",
+    html: `
+      <h1>CHAMP — Conjunctural Media Analysis</h1>
+      <p><strong>Case:</strong> Jimmy Kimmel’s on‑air return after a political controversy. A 1970s‑style broadcast deck rendering of Stuart Hall’s method.</p>
+      <div class="timechips">
+        ${chip("Full monologue", "http://www.youtube.com/watch?v=c1tjh_ZO_tY")}
+      </div>
+      <blockquote>
+        <span class="cap">Hall’s Core Question</span>
+        What struggle over meaning is being organized here, by whom, for whom, through which media forms?
+      </blockquote>
+      <p class="meta">Swipe, tap ⟶, or use ←/→ to navigate. Toggle <em>Notes</em> for speaker guidance.</p>
+    `,
+    notes: `Open on the premise: not vibes but structures. Introduce Hall's conjunctural analysis as the engine of the deck.`
+  },
+  {
+    title: "0) One‑Sentence Conjuncture",
+    html: `
+      <h2>0) One‑Sentence Conjuncture</h2>
+      <p><strong>Event:</strong> Return of Jimmy Kimmel’s late‑night show after removal following a joke about the President and Tylenol, triggering public debate and government pressure.</p>
+      <blockquote><span class="cap">Kicker</span> A live fight over who sets the limits of televised speech.</blockquote>
+    `,
+    notes: `Frame the conjuncture tightly: event + antagonists + medium (broadcast + platforms).`
+  },
+  {
+    title: "1) Periodisation & Scan",
+    html: `
+      <h2>1) Periodisation & Conjuncture Scan</h2>
+      <h3>Candidate Break(s)</h3>
+      <ul>
+        <li><strong>B1:</strong> Recent past ↔ present ${chip("[02:01]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=121")} where a single joke triggers a political/media incident; unprecedented after <em>23 years on air</em> ${chip("[13:10]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=790")}.</li>
+        <li><em>Inside culture:</em> Right/left figures (e.g., Ben Shapiro, Ted Cruz) publicly defend Kimmel’s right to speak ${chip("[04:48]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=288")}.</li>
+        <li><em>Outside impingements:</em> FCC chair threats; President pushes to fire staff ${chip("[09:32]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=572")}.</li>
+      </ul>
+      <h3>Indicators</h3>
+      <ul>
+        <li><strong>Policy shift:</strong> FCC “tradition of meddling” ${chip("[10:26]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=626")} and alleged “mob tactics” ${chip("[21:14]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=1274")}; new pledge for Pentagon‑accredited journalists ${chip("[15:19]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=919")}.</li>
+        <li><strong>Audience/market:</strong> Show preempted in ~20% of the U.S. ${chip("[19:53]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=1193")} (e.g., D.C., Nashville, St. Louis).</li>
+      </ul>
+      <p><strong>Disjuncture score:</strong> 0.85 — open governmental de‑platforming attempts labelled “un‑American” ${chip("[09:04]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=544")} and unprecedented in show history ${chip("[13:10]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=790")}.</p>
+    `,
+    notes: `Underline that periodisation is evidence‑led; call out dates + on‑air references via timestamp chips.`
+  },
+  {
+    title: "2) Field of Forces",
+    html: `
+      <h2>2) Field of Forces</h2>
+      <ul>
+        <li><strong>Popular forces:</strong> Audience; other late‑night hosts (Colbert, Fallon, Oliver) ${chip("[03:35]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=215")}; right‑leaning figures (Shapiro, Owens, Cruz) ${chip("[04:54]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=294")}. Resources: free‑speech norm, social platforms, public attention.</li>
+        <li><strong>Power‑bloc:</strong> President; FCC (Chair Brendan Carr) ${chip("[09:18]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=558")}. Resources: institutional authority; regulatory + economic pressure on affiliates.</li>
+        <li><strong>Alliances/Cleavages:</strong> Unexpected cross‑ideological alliance around speech rights; primary cleavage = popular coalition vs. power‑bloc.</li>
+        <li><strong>Boundary rule:</strong> “The people” = those who defend on‑air speech autonomy ${chip("[06:16]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=376")}.</li>
+      </ul>
+    `,
+    notes: `Name actors and their capacities; avoid psychologizing. Keep it structural.`
+  },
+  {
+    title: "3) Mechanisms of Transformation",
+    html: `
+      <h2>3) Mechanisms of Transformation</h2>
+      <ul>
+        <li><strong>Policing/Enforcement:</strong> “Gunning for our journalists” ${chip("[15:12]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=912")} + threats of added FCC action ${chip("[09:38]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=578")} if networks don’t act.</li>
+        <li><strong>Distribution re‑wiring:</strong> Preemptions in key markets reduce reach ${chip("[19:53]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=1193")}.</li>
+      </ul>
+    `,
+    notes: `Mechanisms = operators you can point to (orders, policies, schedules), not vibes.`
+  },
+  {
+    title: "4) Encoding → Circulation → Decoding",
+    html: `
+      <h2>4) Encoding → Circulation → Decoding</h2>
+      <h3>Encoding</h3>
+      <ul>
+        <li><strong>Preferred meaning:</strong> Free speech faces dangerous, “un‑American” government threat.</li>
+        <li><strong>Indexing voices:</strong> Kimmel + late‑night peers + political supporters ${chip("[03:35]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=215")}; quoting Carr to depict hypocrisy ${chip("[10:56]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=656")}.</li>
+        <li><strong>Codes/tropes:</strong> Underdog comedian vs. overreaching state; lineage to Lenny Bruce/George Carlin ${chip("[16:09]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=969")}.</li>
+      </ul>
+      <h3>Circulation</h3>
+      <ul>
+        <li><strong>Channels:</strong> ABC broadcast; YouTube ${chip("[18:42]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=1122")}.</li>
+        <li><strong>Redundancy:</strong> High (multiple shows + social commentary echo frame) ${chip("[03:35]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=215")}.</li>
+      </ul>
+      <h3>Decoding</h3>
+      <ul>
+        <li><strong>Preferred:</strong> Audience cheers government overreach critique ${chip("[04:33]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=273")}.</li>
+        <li><strong>Negotiated:</strong> Agree on principle, question specifics/sincerity ${chip("[06:31]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=391")}.</li>
+        <li><strong>Oppositional:</strong> “No talent / no ratings” dismissal ${chip("[11:33]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=693")}.</li>
+      </ul>
+    `,
+    notes: `Walk Hall’s circuit: who encodes, through what apparatuses, and how audiences position themselves relative to it.`
+  },
+  {
+    title: "5) Containment / Resistance Loops",
+    html: `
+      <h2>5) Containment / Resistance as Feedback</h2>
+      <ul>
+        <li><strong>Amplifier A1 — Free Speech Coalition:</strong> Threats → media solidarity/public outcry → amplified legitimacy & viewership ("forced millions to watch") ${chip("[12:18]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=738")}.</li>
+        <li><strong>Dampener D1 — Corporate Pressure:</strong> Government pressure → affiliate preemptions ${chip("[19:53]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=1193")} → reach reduced.</li>
+      </ul>
+      <blockquote><span class="cap">Net effect</span>
+        Oscillation that net‑amplified Kimmel’s platform this cycle.
+      </blockquote>
+    `,
+    notes: `Name feedback loops; sketch how unintended consequences flipped the intended dampening into amplification.`
+  },
+  {
+    title: "6) Incorporation Pathways",
+    html: `
+      <h2>6) Incorporation Pathways (Williams → Operational)</h2>
+      <ul>
+        <li><strong>Emergent:</strong> Cross‑ideological speech‑rights coalition ${chip("[04:54]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=294")}.</li>
+        <li><strong>Contestation:</strong> Legal/political fights over content and carriage.</li>
+        <li><strong>Incorporated:</strong> Free‑speech frame folded into mainstream comedic monologue ${chip("[13:40]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=820")}.</li>
+      </ul>
+    `,
+    notes: `Show how emergent → contested → incorporated cycles move through institutions and popular common sense.`
+  },
+  {
+    title: "7) VSM Overlay (Viability)",
+    html: `
+      <h2>7) VSM Overlay — Viability Test</h2>
+      <h3>Popular side (risks)</h3>
+      <ul>
+        <li><strong>S1 Ops:</strong> Public support, social campaigns, host solidarity. <em>Gap:</em> sustaining attention.</li>
+        <li><strong>S2 Coordination:</strong> Implicit coalition on principle. <em>Gap:</em> fragmentation risk.</li>
+        <li><strong>S3 Control:</strong> Parent‑company cover (ABC/Disney). <em>Gap:</em> corporate capture risk.</li>
+      </ul>
+      <h3>Power‑bloc (risks)</h3>
+      <ul>
+        <li><strong>S1 Ops:</strong> Threats/policy moves. <em>Gap:</em> overreach backfire.</li>
+        <li><strong>S2 Coordination:</strong> Tight political‑regulatory coupling. <em>Gap:</em> rigidity.</li>
+        <li><strong>S3 Control:</strong> Legal authority. <em>Gap:</em> legitimacy erosion.</li>
+      </ul>
+      <p><strong>Verdict:</strong> Popular side (this cycle) — power‑bloc not viable against unified, principle‑based backlash.
+    `,
+    notes: `Use Beer’s VSM as a checklist: operations, coordination, control. Who can persist without self‑undermining?`
+  },
+  {
+    title: "8) Story Stickiness",
+    html: `
+      <h2>8) Story Stickiness (Hall’s Test)</h2>
+      <ul>
+        <li><strong>Contradiction condensed?</strong> Speech champion now threatens it ${chip("[10:56]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=656")}.</li>
+        <li><strong>Common‑sense fit?</strong> “Don’t let government dictate what you can say.”</li>
+        <li><strong>Cross‑apparatus redundancy?</strong> High (talk shows, news, social).</li>
+        <li><strong>Us/Them boundary?</strong> Speech defenders vs. censors.</li>
+        <li><strong>Policy script?</strong> Non‑interference with media/journalism.</li>
+        <li><strong>Recuperability risk?</strong> Free‑speech banner is multi‑use; can be weaponized by rivals.</li>
+      </ul>
+    `,
+    notes: `Stickiness = compresses contradiction, travels easily, repeats across apparatuses, sets a policy default.`
+  },
+  {
+    title: "9) Tradition & Articulation",
+    html: `
+      <h2>9) Tradition & Articulation (Against Essentialism)</h2>
+      <ul>
+        <li><strong>Traditions:</strong> Political satire lineage (Bruce, Carlin) ${chip("[16:09]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=969")} ↔ broadcast regulation history.</li>
+        <li><strong>Re‑articulation:</strong> Satire reframed as core civil liberty, not mere entertainment.</li>
+        <li><strong>Ambiguous sign:</strong> “Free speech” — also deployable to defend controversial/conspiratorial claims (e.g., Tylenol/autism) ${chip("[25:50]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=1550")}.</li>
+      </ul>
+    `,
+    notes: `Emphasize articulation: how signs are re‑chained to new coalitions without changing their literal wording.`
+  },
+  {
+    title: "10) Claims + Metrics",
+    html: `
+      <h2>10) Falsifiable Claims + Watch Metrics</h2>
+      <ol>
+        <li><strong>C1:</strong> Continued presidential targeting of specific media figures → increased cross‑political backlash within 1 month.</li>
+        <li><strong>C2:</strong> If public pressure wanes, FCC coercion → long‑term cancellations.</li>
+        <li><strong>C3:</strong> “Government overreach in media” becomes a campaign plank by next election cycle.</li>
+      </ol>
+      <h3>Metrics</h3>
+      <ul>
+        <li>Polling on regulation perceptions.</li>
+        <li>Count of politicians publicly backing speech rights.</li>
+        <li>Count of shows canceled/preempted for political reasons.</li>
+      </ul>
+    `,
+    notes: `Hold yourself to disconfirmation. Say what would count as a miss. Add dates when running live.`
+  },
+  {
+    title: "11) Counter‑Story Design",
+    html: `
+      <h2>11) Counter‑Story Design (Anti‑recuperation)</h2>
+      <ul>
+        <li><strong>Recode the “we”:</strong> People who defend the right to speak <em>regardless</em> of affiliation.</li>
+        <li><strong>Structure over villains:</strong> Name government overreach as system (e.g., “new FCC Chairman” skit) ${chip("[20:48]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=1248")}.</li>
+        <li><strong>Cross‑apparatus redundancy:</strong> Synchronize late‑night, news, socials.</li>
+        <li><strong>Add friction:</strong> Cite the historical fights (Bruce/Carlin) to anchor norms ${chip("[16:09]", "http://www.youtube.com/watch?v=c1tjh_ZO_tY&t=969")}.</li>
+      </ul>
+    `,
+    notes: `Design for staying power; name structures, build redundancy, install friction against capture.`
+  },
+  {
+    title: "12) Mini Worked Illustration",
+    html: `
+      <h2>12) Mini Worked Illustration (≈1 minute)</h2>
+      <ul>
+        <li><strong>Event:</strong> Kimmel returns after political firestorm.</li>
+        <li><strong>Preferred frame:</strong> “Don’t let government tell you what you can say.”</li>
+        <li><strong>Amplifier A1:</strong> Threats → backlash → ratings.</li>
+        <li><strong>Dampener D1:</strong> FCC pressure → preemptions → reach↓.</li>
+        <li><strong>Viability (week):</strong> Popular side favored (shared‑value coalition).</li>
+        <li><strong>Claim to test:</strong> Growing public support delegitimizes FCC actions.</li>
+      </ul>
+      <div class="timechips">
+        ${chip("Watch the monologue", "http://www.youtube.com/watch?v=c1tjh_ZO_tY")}
+      </div>
+    `,
+    notes: `This is your quick recap slide for media hits and classrooms.`
+  }
+];
+
+// Render slides as absolutely positioned panels
+const wrap = document.getElementById('slidewrap');
+const notesPad = document.getElementById('notesPad');
+const crumb = document.getElementById('crumb');
+const bar = document.getElementById('bar');
+let idx = 0;
+
+function render() {
+  wrap.innerHTML = slides.map((s, i) => `
+    <article class="slide" role="group" aria-roledescription="slide" aria-label="${i+1} ${s.title}" aria-current="${i===idx}">
+      ${s.html}
+    </article>
+  `).join('');
+  notesPad.innerHTML = `<h4>Notes</h4><p>${slides[idx].notes || ''}</p>`;
+  crumb.textContent = `Slide ${idx+1} / ${slides.length}`;
+  bar.style.width = `${((idx+1)/slides.length)*100}%`;
+}
+
+function next() { idx = (idx + 1) % slides.length; render(); }
+function prev() { idx = (idx - 1 + slides.length) % slides.length; render(); }
+
+// Controls
+const nextBtn = document.getElementById('next');
+const prevBtn = document.getElementById('prev');
+nextBtn.addEventListener('click', next);
+prevBtn.addEventListener('click', prev);
+
+// Keyboard
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'l') next();
+  if (e.key === 'ArrowLeft'  || e.key.toLowerCase() === 'h') prev();
+  if (e.key.toLowerCase() === 'n') toggleNotes();
+});
+
+// Swipe
+let startX = 0, startY = 0;
+wrap.addEventListener('touchstart', (e) => { const t = e.touches[0]; startX = t.clientX; startY = t.clientY; }, {passive:true});
+wrap.addEventListener('touchend', (e) => {
+  const t = e.changedTouches[0]; const dx = t.clientX - startX; const dy = t.clientY - startY;
+  if (Math.abs(dx) > 40 && Math.abs(dy) < 50) { dx < 0 ? next() : prev(); }
+}, {passive:true});
+
+// Notes toggle
+const notesEl = document.getElementById('notes');
+const notesToggle = document.getElementById('notesToggle');
+function toggleNotes(){
+  const open = notesEl.classList.toggle('open');
+  notesEl.setAttribute('aria-hidden', !open);
+  notesToggle.setAttribute('aria-pressed', open);
+}
+notesToggle.addEventListener('click', toggleNotes);
+
+// CRT FX toggle (scanlines/vignette)
+const screen = document.getElementById('screen');
+const crtToggle = document.getElementById('crtToggle');
+let crtOn = true;
+crtToggle.addEventListener('click', () => {
+  crtOn = !crtOn;
+  screen.classList.toggle('vignette', crtOn);
+  crtToggle.setAttribute('aria-pressed', crtOn);
+});
+
+// High contrast toggle
+const contrastToggle = document.getElementById('contrastToggle');
+contrastToggle.addEventListener('click', () => {
+  const hc = document.documentElement.classList.toggle('highcontrast');
+  contrastToggle.setAttribute('aria-pressed', hc);
+});
+
+// Init
+render();
+</script>
+</body>
+</html>
