@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&H Proposal Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f4f0;
+            --card-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --subtle-text: #666666;
+            --border-color: #d1d1d1;
+            --bar-bg: #e0e0e0;
+            --accent-color: #FF6600; /* Safety Orange */
+            --nasa-blue: #0B3D91;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --font-sans: 'Inter', sans-serif;
+            --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        body.presentation-active { background-color: #1a1a1a; overflow: hidden; }
+        .hidden { display: none !important; }
+
+        /* --- Console Header --- */
+        .console-header {
+            max-width: 1400px;
+            margin: 0 auto 1.5rem auto;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow);
+        }
+        .console-header h1 {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .console-header h1 span { color: var(--accent-color); }
+        .console-header p {
+            margin: 0.25rem 0 0 0;
+            font-family: var(--font-sans);
+            color: var(--subtle-text);
+        }
+
+        /* --- Controls --- */
+        .controls-container {
+            max-width: 1400px;
+            margin: 0 auto 1.5rem auto;
+            background: var(--card-bg);
+            padding: 1rem 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+        .control-group { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+        .control-group > div { display: flex; align-items: center; gap: 0.5rem; }
+        .control-group label { font-weight: 500; font-size: 0.8rem; font-family: var(--font-mono); text-transform: uppercase; }
+        .control-group input, .control-group select, .control-group button {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            font-size: 0.875rem;
+            font-family: var(--font-mono);
+        }
+        .control-group button { cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+        .control-group button:hover { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .control-group button.primary { background-color: var(--nasa-blue); color: white; border-color: var(--nasa-blue); }
+        .control-group button.primary:disabled { background-color: #bdbdbd; border-color: #bdbdbd; cursor: not-allowed; }
+        .view-switcher button.active { background-color: var(--text-color); color: white; border-color: var(--text-color); }
+        
+        /* --- Mode Toggle Switch --- */
+        .mode-toggle-switch { display: flex; align-items: center; gap: 0.75rem; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border: 1px solid var(--border-color); }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 3px; background-color: white; transition: .4s; }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* --- Cards --- */
+        #grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; max-width: 1400px; margin: 0 auto; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: box-shadow 0.2s, border-color 0.2s; position: relative; }
+        .card.selected { border-color: var(--accent-color); box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3); }
+        .card-select { position: absolute; top: 1rem; left: 1rem; transform: scale(1.2); accent-color: var(--accent-color); }
+        .card-header { padding-left: 2rem; }
+        .card-title { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.25rem 0; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card-subtitle { font-family: var(--font-mono); font-size: 0.8rem; font-style: italic; color: var(--subtle-text); margin: 0; }
+        
+        /* Metric bars and lists */
+        .metrics-grid { margin-top: 1rem; }
+        .metric { display: flex; flex-direction: column; margin: 0.5rem 0; }
+        .metric-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem; font-family: var(--font-mono); }
+        .bar-container { width: 100%; background-color: var(--bar-bg); overflow: hidden; }
+        .bar { height: 8px; background-color: var(--nasa-blue); }
+        
+        /* Toggle Logic */
+        body.text-only-mode .metrics-grid { display: none; }
+
+        .list-section { margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 1rem; }
+        .list-section summary { font-weight: 600; font-size: 0.875rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); }
+        .list-section ul { list-style-type: none; padding-left: 0; margin: 0.5rem 0 0 0; }
+        .list-section li { position: relative; padding-left: 1rem; margin-bottom: 0.35rem; font-size: 0.875rem; line-height: 1.5; color: var(--subtle-text); }
+        .list-section li::before { content: '›'; position: absolute; left: 0; color: var(--accent-color); font-weight: bold; }
+
+        /* --- Compare View --- */
+        #compare-container { display: flex; gap: 1rem; max-width: 1400px; margin: 0 auto; align-items: flex-start; }
+        #compare-container .card { flex: 1; min-width: 0; }
+        
+        /* --- Presentation View --- */
+        #presentation-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .slide { width: 90%; max-width: 1000px; height: 90vh; max-height: 800px; background: var(--card-bg); padding: 2rem 3rem; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; border: 2px solid var(--border-color); }
+        .slide-header .card-title { font-size: 2rem; }
+        .presentation-nav { position: fixed; top: 50%; left: 1rem; right: 1rem; display: flex; justify-content: space-between; transform: translateY(-50%); z-index: 1001; }
+        .presentation-nav button { background: rgba(255, 255, 255, 0.9); border: 1px solid var(--border-color); border-radius: 0; width: 50px; height: 50px; font-size: 2rem; cursor: pointer; color: var(--text-color); }
+        .presentation-counter { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 0.5rem 1rem; z-index: 1001; font-family: var(--font-mono); font-size: 0.875rem; }
+    </style>
+</head>
+<body>
+    <header class="console-header">
+        <h1>Sharpen <span>&</span> Hone // Proposal Analysis Console</h1>
+        <p>Folksy Field Notes meet NASA Mission Metrics. Use the controls to filter, sort, and analyze proposals.</p>
+    </header>
+
+    <div class="controls-container">
+        <div class="control-group">
+             <div>
+                <label for="search-input">Filter:</label>
+                <input type="search" id="search-input" placeholder="Search...">
+            </div>
+            <div>
+                <label for="sort-select">Sort by:</label>
+                <select id="sort-select">
+                    <option value="default">Default</option>
+                    <option value="proposal">Proposal Name</option>
+                    <option value="time_bias">Time Bias</option>
+                    <option value="persistence">Persistence</option>
+                    <option value="equity_alignment">Equity Alignment</option>
+                </select>
+                <select id="sort-direction">
+                    <option value="desc">Desc</option>
+                    <option value="asc">Asc</option>
+                </select>
+            </div>
+            <div class="mode-toggle-switch">
+                <label for="mode-toggle">Field Notes</label>
+                <label class="switch">
+                    <input type="checkbox" id="mode-toggle">
+                    <span class="slider"></span>
+                </label>
+                <label for="mode-toggle">Mission Metrics</label>
+            </div>
+            <div class="view-switcher">
+                <button id="view-grid-btn" class="active">Grid</button>
+                <button id="view-presentation-btn">Present</button>
+            </div>
+             <div>
+                <button id="compare-btn" class="primary" disabled>Compare (0)</button>
+            </div>
+        </div>
+    </div>
+
+    <main id="main-content">
+        <div id="grid-container"></div>
+        <div id="compare-container" class="hidden"></div>
+    </main>
+    
+    <div id="presentation-container" class="hidden"></div>
+
+    <script>
+        const data = {
+            "innis_batch": [
+                // Batch 1 from previous context
+                {"innis_plot":{"proposal":"Granite monuments + corner markers","media_form":["stone stele","site perimeter markers"],"time_bias":0.75,"space_bias":0.15,"persistence":0.6,"legibility_millennia":0.3,"appropriation_risk":0.55,"maintenance_load":0.2,"monopoly_of_knowledge":0.7,"equity_alignment":0.3,"failure_modes":["inscriptions become linguistically opaque","stones quarried/reused"],"stewardship_requirements":["use non-repurposable geometries","pair with off-site narrative carriers"]}},
+                {"innis_plot":{"proposal":"Multi-language inscriptions","media_form":["text","multilingual inscription"],"time_bias":0.4,"space_bias":0.3,"persistence":0.25,"legibility_millennia":0.2,"appropriation_risk":0.35,"maintenance_load":0.15,"monopoly_of_knowledge":0.65,"equity_alignment":0.4,"failure_modes":["language drift → unreadable","elite translation gatekeeping"],"stewardship_requirements":["treat as transitional layer only","refresh plates every few centuries"]}},
+                {"innis_plot":{"proposal":"Buried libraries/archives","media_form":["document cache","maps"],"time_bias":0.55,"space_bias":0.15,"persistence":0.35,"legibility_millennia":0.3,"appropriation_risk":0.5,"maintenance_load":0.3,"monopoly_of_knowledge":0.75,"equity_alignment":0.35,"failure_modes":["formats become unreadable","treasure-hunting triggers excavation"],"stewardship_requirements":["use low-tech substrates","place OFF-site in redundant locations"]}},
+                {"innis_plot":{"proposal":"Stick-figure comics","media_form":["pictograms","storyboard"],"time_bias":0.5,"space_bias":0.25,"persistence":0.4,"legibility_millennia":0.45,"appropriation_risk":0.45,"maintenance_load":0.2,"monopoly_of_knowledge":0.6,"equity_alignment":0.45,"failure_modes":["reading order ambiguity","icon drift (misread as myth)"],"stewardship_requirements":["force sequence via path choreography","avoid stylization; keep schematic"]}},
+                {"innis_plot":{"proposal":"Landscape of Thorns","media_form":["mega-earthwork","hostile architecture"],"time_bias":0.7,"space_bias":0.35,"persistence":0.55,"legibility_millennia":0.35,"appropriation_risk":0.9,"maintenance_load":0.5,"monopoly_of_knowledge":0.8,"equity_alignment":0.3,"failure_modes":["becomes tourist spectacle","artists/settlers repurpose materials"],"stewardship_requirements":["de-spectacularize geometry","disperse smaller deterrent clusters"]}},
+                {"innis_plot":{"proposal":"Ray cats folklore","media_form":["bio-signal","oral tradition"],"time_bias":0.85,"space_bias":0.55,"persistence":0.5,"legibility_millennia":0.55,"appropriation_risk":0.4,"maintenance_load":0.6,"monopoly_of_knowledge":0.45,"equity_alignment":0.6,"failure_modes":["biotech trait lost","folklore aestheticized"],"stewardship_requirements":["license open breeding protocols","embed songs in schools/festivals"]}},
+                {"innis_plot":{"proposal":"Indigenous treaty-based guardianship","media_form":["treaty/charter","oral law"],"time_bias":0.9,"space_bias":0.4,"persistence":0.65,"legibility_millennia":0.6,"appropriation_risk":0.35,"maintenance_load":0.75,"monopoly_of_knowledge":0.3,"equity_alignment":0.85,"failure_modes":["state defunds or abrogates treaty","cultural suppression disrupts transmission"],"stewardship_requirements":["endow a perpetual fund","protect language/education programs"]}},
+                // Batch 2 from previous context
+                {"innis_plot":{"proposal":"Volcano Warning Folktale","media_form":["oral tradition","legend"],"time_bias":0.9,"space_bias":0.4,"persistence":0.8,"legibility_millennia":0.75,"appropriation_risk":0.5,"maintenance_load":0.15,"monopoly_of_knowledge":0.1,"equity_alignment":0.9,"failure_modes":["narrative decouples from warning","transmission chain is broken"],"stewardship_requirements":["embed in compelling story","ensure narrative is pleasurable to retell"]}},
+                {"innis_plot":{"proposal":"Tomb Hazard Legends","media_form":["rumor","folklore"],"time_bias":0.85,"space_bias":0.5,"persistence":0.7,"legibility_millennia":0.6,"appropriation_risk":0.7,"maintenance_load":0.1,"monopoly_of_knowledge":0.2,"equity_alignment":0.8,"failure_modes":["treasure promise outweighs threat","hazard is neutralized or removed"],"stewardship_requirements":["link legend to a real, verifiable hazard","propagate stories of poison over treasure"]}},
+                {"innis_plot":{"proposal":"The Atomic Priesthood","media_form":["created ritual","custodian order"],"time_bias":0.95,"space_bias":0.1,"persistence":0.65,"legibility_millennia":0.5,"appropriation_risk":0.85,"maintenance_load":0.9,"monopoly_of_knowledge":0.95,"equity_alignment":0.05,"failure_modes":["priesthood dies out or corrupts","ritual meaning inverts"],"stewardship_requirements":["establish self-perpetuating commission","entrust 'actual truth' exclusively to them"]}},
+                {"innis_plot":{"proposal":"Memetic Mutation ('Glass Slipper')","media_form":["narrative element","trope"],"time_bias":0.8,"space_bias":0.85,"persistence":0.75,"legibility_millennia":0.7,"appropriation_risk":0.3,"maintenance_load":0,"monopoly_of_knowledge":0.05,"equity_alignment":0.95,"failure_modes":["more compelling mutation arises","cultural context disappears"],"stewardship_requirements":["cannot be actively stewarded","craft 'gloriously unlikely' elements"]}},
+                {"innis_plot":{"proposal":"Resilient Physical Media ('Books are Sharks')","media_form":["bound codex","printed book"],"time_bias":0.6,"space_bias":0.65,"persistence":0.8,"legibility_millennia":0.2,"appropriation_risk":0.15,"maintenance_load":0.4,"monopoly_of_knowledge":0.5,"equity_alignment":0.5,"failure_modes":["material decay","language becomes obsolete"],"stewardship_requirements":["utilize robust, well-evolved technology","maintain a culture of literacy and preservation"]}}
+            ]
+        };
+
+        const state = {
+            proposals: data.innis_batch.map(d => d.innis_plot),
+            filteredProposals: [],
+            selectedProposals: [],
+            currentView: 'grid', // 'grid', 'compare', 'presentation'
+            presentationIndex: 0,
+            filters: { searchTerm: '', sortBy: 'default', sortDir: 'desc' }
+        };
+
+        const toTitleCase = (str) => str.replace(/_/g, ' ').replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+
+        function createCardHTML(plot, view = 'grid') {
+            const isSelected = state.selectedProposals.includes(plot.proposal);
+            const metrics = ['time_bias', 'space_bias', 'persistence', 'legibility_millennia', 'appropriation_risk', 'maintenance_load', 'monopoly_of_knowledge', 'equity_alignment'];
+            return `
+                <div class="card ${isSelected ? 'selected' : ''}" data-proposal-id="${plot.proposal}">
+                    ${view === 'grid' ? `<input type="checkbox" class="card-select" ${isSelected ? 'checked' : ''} data-proposal-id="${plot.proposal}">` : ''}
+                    <div class="card-header">
+                        <h3 class="card-title">${plot.proposal}</h3>
+                        <p class="card-subtitle">${plot.media_form.join(', ')}</p>
+                    </div>
+                    <div class="metrics-grid">
+                        ${metrics.map(key => `
+                            <div class="metric">
+                                <div class="metric-label"><span>${key.replace(/_/g, ' ')}</span><span>${plot[key].toFixed(2)}</span></div>
+                                <div class="bar-container"><div class="bar" style="width: ${plot[key] * 100}%"></div></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="list-section">
+                        <details><summary>Failure Modes</summary><ul>${plot.failure_modes.map(item => `<li>${item}</li>`).join('')}</ul></details>
+                    </div>
+                    <div class="list-section">
+                        <details><summary>Stewardship</summary><ul>${plot.stewardship_requirements.map(item => `<li>${item}</li>`).join('')}</ul></details>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function applyFiltersAndSort() {
+            const { searchTerm, sortBy, sortDir } = state.filters;
+            let proposals = [...state.proposals];
+            if (searchTerm) {
+                const lowerCaseSearch = searchTerm.toLowerCase();
+                proposals = proposals.filter(p => p.proposal.toLowerCase().includes(lowerCaseSearch) || p.media_form.some(mf => mf.toLowerCase().includes(lowerCaseSearch)));
+            }
+            if (sortBy !== 'default') {
+                proposals.sort((a, b) => {
+                    const valA = a[sortBy]; const valB = b[sortBy];
+                    if (typeof valA === 'string') return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    return sortDir === 'asc' ? valA - valB : valB - valA;
+                });
+            }
+            state.filteredProposals = proposals;
+        }
+
+        function render() {
+            applyFiltersAndSort();
+            document.body.classList.toggle('presentation-active', state.currentView === 'presentation');
+            document.getElementById('grid-container').classList.toggle('hidden', state.currentView !== 'grid');
+            document.getElementById('compare-container').classList.toggle('hidden', state.currentView !== 'compare');
+            document.getElementById('presentation-container').classList.toggle('hidden', state.currentView !== 'presentation');
+
+            if (state.currentView === 'grid') document.getElementById('grid-container').innerHTML = state.filteredProposals.map(p => createCardHTML(p, 'grid')).join('');
+            else if (state.currentView === 'compare') {
+                const selected = state.proposals.filter(p => state.selectedProposals.includes(p.proposal));
+                document.getElementById('compare-container').innerHTML = selected.map(p => createCardHTML(p, 'compare')).join('');
+            }
+            else if (state.currentView === 'presentation') renderPresentationView();
+            updateControls();
+        }
+
+        function renderPresentationView() {
+            const container = document.getElementById('presentation-container');
+            if(state.filteredProposals.length === 0) {
+                 container.innerHTML = `<div class="slide"><h2 class="card-title">No proposals to display.</h2></div>`; return;
+            }
+            const plot = state.filteredProposals[state.presentationIndex];
+            container.innerHTML = `
+                <div class="presentation-nav"><button id="prev-slide-btn">‹</button><button id="next-slide-btn">›</button></div>
+                <div class="presentation-counter">${state.presentationIndex + 1} / ${state.filteredProposals.length}</div>
+                <div class="slide">${createCardHTML(plot, 'presentation').replace('<div class="card', '<div class="card-content')}</div>
+            `;
+            container.querySelectorAll('details').forEach(d => d.open = true);
+        }
+
+        function updateControls() {
+            const compareBtn = document.getElementById('compare-btn');
+            const numSelected = state.selectedProposals.length;
+            compareBtn.textContent = `Compare (${numSelected})`;
+            compareBtn.disabled = numSelected < 2;
+            document.getElementById('view-grid-btn').classList.toggle('active', state.currentView === 'grid' || state.currentView === 'compare');
+            document.getElementById('view-presentation-btn').classList.toggle('active', state.currentView === 'presentation');
+        }
+
+        function setupEventListeners() {
+            document.getElementById('search-input').addEventListener('input', e => { state.filters.searchTerm = e.target.value; render(); });
+            document.getElementById('sort-select').addEventListener('change', e => { state.filters.sortBy = e.target.value; render(); });
+            document.getElementById('sort-direction').addEventListener('change', e => { state.filters.sortDir = e.target.value; render(); });
+            document.getElementById('mode-toggle').addEventListener('change', e => document.body.classList.toggle('text-only-mode', !e.target.checked));
+            document.getElementById('view-grid-btn').addEventListener('click', () => { state.currentView = 'grid'; render(); });
+            document.getElementById('view-presentation-btn').addEventListener('click', () => { state.currentView = 'presentation'; state.presentationIndex = 0; render(); });
+            document.getElementById('compare-btn').addEventListener('click', () => { if (state.selectedProposals.length >= 2) { state.currentView = 'compare'; render(); }});
+            document.getElementById('grid-container').addEventListener('click', e => {
+                if (e.target.classList.contains('card-select')) {
+                    const proposalId = e.target.dataset.proposalId;
+                    if (e.target.checked) { if (!state.selectedProposals.includes(proposalId)) state.selectedProposals.push(proposalId); }
+                    else { state.selectedProposals = state.selectedProposals.filter(id => id !== proposalId); }
+                    render();
+                }
+            });
+            document.getElementById('presentation-container').addEventListener('click', e => {
+                if(e.target.id === 'presentation-container') { state.currentView = 'grid'; render(); }
+                if(e.target.id === 'prev-slide-btn') navigatePresentation(-1);
+                if(e.target.id === 'next-slide-btn') navigatePresentation(1);
+            });
+            document.addEventListener('keydown', e => {
+                if (state.currentView === 'presentation') {
+                    if (e.key === 'ArrowRight') navigatePresentation(1);
+                    if (e.key === 'ArrowLeft') navigatePresentation(-1);
+                    if (e.key === 'Escape') { state.currentView = 'grid'; render(); }
+                }
+            });
+        }
+        
+        function navigatePresentation(direction) {
+            const numSlides = state.filteredProposals.length;
+            if(numSlides === 0) return;
+            state.presentationIndex = (state.presentationIndex + direction + numSlides) % numSlides;
+            renderPresentationView();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('mode-toggle').checked = true; // Default to Metrics view
+            setupEventListeners();
+            render();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&H Spectrum Console [v5.0 Final]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=PT+Serif:wght@700&family=Inter:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f0ea;
+            --card-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --subtle-text: #555555;
+            --border-color: #d1d1d1;
+            --bar-bg: #e0e0e0;
+            --space-color: #D93A1E; /* Broadcast Red */
+            --time-color: #0D3B66;  /* Monument Blue */
+            --font-mono: 'IBM Plex Mono', monospace;
+            --font-serif: 'PT Serif', serif;
+            --font-sans: 'Inter', sans-serif;
+            --shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1.5rem;
+        }
+
+        /* --- Controls & Legend --- */
+        .spectrum-container {
+            max-width: 1400px; margin: 0 auto 1.5rem auto; background: var(--card-bg); padding: 1.5rem; border: 1px solid var(--border-color); box-shadow: var(--shadow);
+        }
+        .spectrum-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem; }
+        .spectrum-label { font-size: 1.25rem; }
+        .spectrum-label.time { font-family: var(--font-serif); color: var(--time-color); }
+        .spectrum-label.space { font-family: var(--font-sans); font-weight: 500; color: var(--space-color); }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: linear-gradient(to right, var(--time-color), var(--space-color)); }
+        input[type=range]::-webkit-slider-thumb { height: 24px; width: 10px; background: var(--text-color); cursor: pointer; -webkit-appearance: none; margin-top: -10px; border: 2px solid var(--card-bg); }
+        .spectrum-legend { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-color); font-family: var(--font-mono); font-size: 0.8rem; color: var(--subtle-text); text-align: center; }
+        .spectrum-legend strong { color: var(--text-color); }
+        .legend-color { display: inline-block; width: 12px; height: 12px; vertical-align: middle; margin: 0 0.25rem; }
+        .aux-controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 1rem; }
+        .aux-controls > div { display: flex; align-items: center; gap: 0.5rem; }
+        .aux-controls label { font-size: 0.8rem; font-family: var(--font-mono); text-transform: uppercase; }
+        .aux-controls input, .aux-controls button { padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); background-color: var(--bg-color); font-size: 0.875rem; font-family: var(--font-mono); }
+        .aux-controls button { cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+        .aux-controls button:hover, .aux-controls button.active { background-color: var(--text-color); color: white; border-color: var(--text-color); }
+        .aux-controls button:disabled { background-color: #bdbdbd; border-color: #bdbdbd; cursor: not-allowed; }
+
+        /* --- Cards --- */
+        #grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 1.5rem; max-width: 1400px; margin: 0 auto; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); display: flex; flex-direction: column; box-shadow: var(--shadow); position: relative; transition: border 0.3s; }
+        .card.selected { box-shadow: 0 4px 12px rgba(0,0,0,0.2); border-color: var(--text-color); }
+        .card-select { position: absolute; top: 1rem; right: 1rem; transform: scale(1.2); accent-color: var(--text-color); }
+        .card[data-bias="time"] { border-left: 5px solid var(--time-color); }
+        .card[data-bias="space"] { border-right: 5px solid var(--space-color); }
+        .card[data-bias="hybrid"] { border-bottom: 5px solid var(--border-color); }
+        .card-header { padding: 1.5rem 1.5rem 1rem 1.5rem; }
+        .card-title { margin: 0 0 0.25rem 0; font-size: 1.25rem; }
+        .card[data-bias="time"] .card-title { font-family: var(--font-serif); }
+        .card[data-bias="space"] .card-title, .card[data-bias="hybrid"] .card-title { font-family: var(--font-sans); font-weight: 500; }
+        .card-subtitle { font-family: var(--font-mono); font-size: 0.8rem; color: var(--subtle-text); margin: 0; }
+        .card-body { display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 0 1.5rem 1.5rem 1.5rem; }
+        .metrics-column { flex: 1; min-width: 180px; }
+        .text-column { flex: 2; min-width: 250px; }
+        .metric { margin-bottom: 0.75rem; }
+        .metric-label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; font-family: var(--font-mono); text-transform: uppercase; }
+        .bar-container { width: 100%; background-color: var(--bar-bg); }
+        .bar { height: 10px; }
+        .list-section { margin-bottom: 1rem; }
+        .list-section summary { font-weight: 600; font-size: 0.875rem; cursor: pointer; font-family: var(--font-mono); margin-bottom: 0.5rem; }
+        .list-section ul, .list-section .content { list-style-type: none; padding-left: 0; margin: 0; }
+        .list-section li, .list-section p { position: relative; padding-left: 1rem; margin-bottom: 0.75rem; font-size: 0.875rem; line-height: 1.5; color: var(--subtle-text); }
+        .list-section li::before, .list-section p::before { content: '›'; position: absolute; left: 0; color: var(--subtle-text); }
+        .list-section blockquote { font-family: var(--font-serif); border-left: 3px solid var(--border-color); padding-left: 1rem; margin-left: 1rem; font-style: italic; }
+
+    </style>
+</head>
+<body>
+    <div class="spectrum-container">
+        <div class="spectrum-header">
+            <div class="spectrum-label time">⏳ Monument</div>
+            <div class="spectrum-label space">🌍 Broadcast</div>
+        </div>
+        <input type="range" min="0" max="100" value="50" class="spectrum-slider" id="spectrum-slider">
+        <div class="spectrum-legend">
+            Use the slider to sort by philosophy. Bars are colored by bias: 
+            <span class="legend-color" style="background:var(--time-color)"></span><strong>Time</strong> vs 
+            <span class="legend-color" style="background:var(--space-color)"></span><strong>Space</strong>.
+        </div>
+        <div class="aux-controls">
+            <div><label for="search-input">Filter:</label><input type="search" id="search-input" placeholder="Refine view..."></div>
+            <div class="view-switcher"><button id="view-grid-btn" class="active">Grid</button><button id="view-presentation-btn">Present</button></div>
+            <div><button id="compare-btn" disabled>Compare (0)</button></div>
+        </div>
+    </div>
+
+    <main id="main-content"><div id="grid-container"></div></main>
+    
+    <script>
+        const state = {
+            proposals: [],
+            filteredProposals: [], selectedProposals: [], currentView: 'grid',
+            presentationIndex: 0, filters: { searchTerm: '', spectrumValue: 50 }
+        };
+
+        const allBatches = [
+            // All data from all previous user prompts is consolidated here
+            {"innis_plot":{"proposal":"Granite monuments","media_form":["stone stele","markers"],"time_bias":0.75,"space_bias":0.15,"persistence":0.6,"legibility_millennia":0.3,"appropriation_risk":0.55,"maintenance_load":0.2,"monopoly_of_knowledge":0.7,"equity_alignment":0.3,"failure_modes":["inscriptions become opaque","stones repurposed"],"stewardship_requirements":["use non-repurposable geometries","pair with off-site carriers"]}},
+            {"innis_plot":{"proposal":"Multi-language inscriptions","media_form":["text","multilingual"],"time_bias":0.4,"space_bias":0.3,"persistence":0.25,"legibility_millennia":0.2,"appropriation_risk":0.35,"maintenance_load":0.15,"monopoly_of_knowledge":0.65,"equity_alignment":0.4,"failure_modes":["language drift","elite gatekeeping"],"stewardship_requirements":["transitional layer only","refresh plates periodically"]}},
+            {"innis_plot":{"proposal":"Landscape of Thorns","media_form":["earthwork","hostile architecture"],"time_bias":0.7,"space_bias":0.35,"persistence":0.55,"legibility_millennia":0.35,"appropriation_risk":0.9,"maintenance_load":0.5,"monopoly_of_knowledge":0.8,"equity_alignment":0.3,"failure_modes":["becomes tourist spectacle","materials repurposed"],"stewardship_requirements":["de-spectacularize geometry","disperse deterrent clusters"]}},
+            {"innis_plot":{"proposal":"Ray cats folklore","media_form":["bio-signal","oral tradition"],"time_bias":0.85,"space_bias":0.55,"persistence":0.5,"legibility_millennia":0.55,"appropriation_risk":0.4,"maintenance_load":0.6,"monopoly_of_knowledge":0.45,"equity_alignment":0.6,"failure_modes":["biotech trait lost","folklore aestheticized"],"stewardship_requirements":["license open breeding protocols","embed songs in schools"]}},
+            {"innis_plot":{"proposal":"Indigenous guardianship","media_form":["treaty","oral law"],"time_bias":0.9,"space_bias":0.4,"persistence":0.65,"legibility_millennia":0.6,"appropriation_risk":0.35,"maintenance_load":0.75,"monopoly_of_knowledge":0.3,"equity_alignment":0.85,"failure_modes":["treaty abrogated","cultural suppression"],"stewardship_requirements":["endow perpetual fund","protect language programs"]}},
+            {"innis_plot":{"proposal":"Volcano Warning Folktale","media_form":["oral tradition","legend"],"time_bias":0.9,"space_bias":0.4,"persistence":0.8,"legibility_millennia":0.75,"appropriation_risk":0.5,"maintenance_load":0.15,"monopoly_of_knowledge":0.1,"equity_alignment":0.9,"failure_modes":["narrative decouples from warning","transmission chain breaks"],"stewardship_requirements":["embed in compelling story","ensure narrative is pleasurable to retell"]}},
+            {"innis_plot":{"proposal":"The Atomic Priesthood","media_form":["created ritual","custodian order"],"time_bias":0.95,"space_bias":0.1,"persistence":0.65,"legibility_millennia":0.5,"appropriation_risk":0.85,"maintenance_load":0.9,"monopoly_of_knowledge":0.95,"equity_alignment":0.05,"failure_modes":["priesthood dies out or corrupts","ritual meaning inverts"],"stewardship_requirements":["establish self-perpetuating commission","entrust 'actual truth' to them"]}},
+            {"innis_plot":{"proposal":"Memetic Mutation","media_form":["narrative element","trope"],"time_bias":0.8,"space_bias":0.85,"persistence":0.75,"legibility_millennia":0.7,"appropriation_risk":0.3,"maintenance_load":0,"monopoly_of_knowledge":0.05,"equity_alignment":0.95,"failure_modes":["more compelling mutation arises","cultural context disappears"],"stewardship_requirements":["cannot be actively stewarded","craft 'gloriously unlikely' elements"]}},
+            {"innis_plot":{"proposal":"Egyptian Stone Monopoly","media_form":["stone inscription","monumental architecture"],"time_bias":0.95,"space_bias":0.1,"persistence":0.95,"legibility_millennia":0.1,"appropriation_risk":0.5,"maintenance_load":0.9,"monopoly_of_knowledge":0.9,"equity_alignment":0.1,"failure_modes":["Monopoly of knowledge & difficult script resisted change, bringing empire to an end.","Competition from papyrus as a new, more efficient medium challenged the monopoly."],"stewardship_requirements":["Mummification and pyramids as devices for emphasizing control over time."]}},
+            {"innis_plot":{"proposal":"Greek Oral Tradition","media_form":["oral tradition","epic poetry","drama"],"time_bias":0.6,"space_bias":0.4,"persistence":0.4,"legibility_millennia":0.75,"appropriation_risk":0.3,"maintenance_load":0.15,"monopoly_of_knowledge":0.15,"equity_alignment":0.85,"failure_modes":["Richness of oral tradition made for a flexible but not politically unified civilization.","Written tradition brought vitality of oral tradition to an end."],"stewardship_requirements":["My bias is with the oral tradition... and the necessity of recapturing something of its spirit."]}},
+            {"innis_plot":{"proposal":"Parchment Codex","media_form":["parchment codex","scripture","scriptoria"],"time_bias":0.9,"space_bias":0.25,"persistence":0.85,"legibility_millennia":0.4,"appropriation_risk":0.6,"maintenance_load":0.8,"monopoly_of_knowledge":0.95,"equity_alignment":0.15,"failure_modes":["Recopying from papyrus to parchment codex involved a thorough system of censorship.","Decline followed competition of paper which supported trade, cities, and vernaculars."],"stewardship_requirements":["Durability and convenience of codex was suitable for large scriptures and legal works."]}},
+            {"innis_plot":{"proposal":"The Printing Press","media_form":["paper","moveable type","vernacular"],"time_bias":0.15,"space_bias":0.9,"persistence":0.5,"legibility_millennia":0.6,"appropriation_risk":0.85,"maintenance_load":0.4,"monopoly_of_knowledge":0.4,"equity_alignment":0.65,"failure_modes":["Mechanization of knowledge creates monopolies in language.","Printing emphasized vernaculars and divisions between states."],"stewardship_requirements":["Monopoly of Bible and Latin was destroyed; widespread market for vernacular Bible developed."]}},
+            {"innis_plot":{"proposal":"Mechanized Communication","media_form":["radio","telegraph","cinema","TV"],"time_bias":0.05,"space_bias":0.95,"persistence":0.1,"legibility_millennia":0.15,"appropriation_risk":0.9,"maintenance_load":0.3,"monopoly_of_knowledge":0.7,"equity_alignment":0.5,"failure_modes":["Bias of paper/printing persisted in a concern with space over duration.","Competition from radio (ear) offset monopoly of print (eye)."],"stewardship_requirements":["Competition from radio involved an appeal to the ear, emphasizing centralization."]}},
+            {"innis_plot":{"proposal":"The Center's Monopoly","media_analyzed":["Broadcast television","Network affiliate system"],"innis_historical_parallel":"The 18th-Century English Publishing Monopoly","time_bias":0.1,"space_bias":0.9,"innis_reading":"Innis would argue that a mature, space-biased medium like broadcast television inevitably creates a powerful, centralized monopoly that becomes intertwined with the state.","grounding_quotes":["With the rise of Walpole... newspapers were brought under control."]}},
+            {"innis_plot":{"proposal":"The Margin's Weapon","media_analyzed":["YouTube clips","Social media sharing"],"innis_historical_parallel":"The Protestant Reformation and the Rise of the Printed Vernacular","time_bias":0.05,"space_bias":0.95,"innis_reading":"The act of uploading a clip to YouTube is the 21st-century equivalent of nailing a thesis to a church door. It leverages a new, paper-like medium (the internet) that is cheap, decentralized, and favors the 'vernacular' over the 'Latin'.","grounding_quotes":["The small book and the pamphlet began to replace the large folios..."]}},
+            {"innis_plot":{"proposal":"The Disturbance","media_analyzed":["Instantaneous social media vs. 24-hour broadcast cycle"],"innis_historical_parallel":"The Telegraph's Destruction of the American Political System (1840-1870)","time_bias":0.2,"space_bias":0.8,"innis_reading":"The 'monopoly over news' held by the network was destroyed. Power shifted from the central institution (ABC) to the individual node (Kimmel's YouTube channel) and the decentralized network (his audience).","grounding_quotes":["The telegraph and the fast press in the metropolitan areas destroyed the power of party based on the post office..."]}}
+        ];
+        
+        const TIME_COLOR = [13, 59, 102], SPACE_COLOR = [217, 58, 30];
+        const getColorForBias = (timeBias = 0.5, spaceBias = 0.5) => {
+            const total = timeBias + spaceBias;
+            if (total === 0) return `rgb(120, 120, 120)`;
+            const t = Math.max(0, Math.min(1, spaceBias / total));
+            const r = Math.round(TIME_COLOR[0] + t * (SPACE_COLOR[0] - TIME_COLOR[0]));
+            const g = Math.round(TIME_COLOR[1] + t * (SPACE_COLOR[1] - TIME_COLOR[1]));
+            const b = Math.round(TIME_COLOR[2] + t * (SPACE_COLOR[2] - TIME_COLOR[2]));
+            return `rgb(${r}, ${g}, ${b})`;
+        };
+
+        const getBias = (p) => {
+            if ((p.time_bias || 0) > (p.space_bias || 0) + 0.3) return 'time';
+            if ((p.space_bias || 0) > (p.time_bias || 0) + 0.3) return 'space';
+            return 'hybrid';
+        };
+
+        const keyToTitleMap = { failure_modes: "Failure Modes", stewardship_requirements: "Stewardship", case_study: "Case Study", media_analyzed: "Media Analyzed", innis_historical_parallel: "Historical Parallel", innis_reading: "Innis Reading", grounding_quotes: "Grounding Quotes" };
+        const METRIC_KEYS = ['time_bias', 'space_bias', 'persistence', 'legibility_millennia', 'appropriation_risk', 'maintenance_load', 'monopoly_of_knowledge', 'equity_alignment'];
+        const HEADER_KEYS = ['proposal', 'media_form'];
+
+        function createCardHTML(plot) {
+            const isSelected = state.selectedProposals.includes(plot.proposal);
+            const bias = getBias(plot);
+            const biasColor = getColorForBias(plot.time_bias, plot.space_bias);
+            const textContentKeys = Object.keys(plot).filter(k => ![...METRIC_KEYS, ...HEADER_KEYS].includes(k));
+
+            return `
+                <div class="card ${isSelected ? 'selected' : ''}" data-proposal-id="${plot.proposal}" data-bias="${bias}">
+                    <input type="checkbox" class="card-select" ${isSelected ? 'checked' : ''} data-proposal-id="${plot.proposal}">
+                    <div class="card-header">
+                        <h3 class="card-title">${plot.proposal}</h3>
+                        ${plot.media_form ? `<p class="card-subtitle">${plot.media_form.join(', ')}</p>` : ''}
+                    </div>
+                    <div class="card-body">
+                        <div class="metrics-column">
+                            ${METRIC_KEYS.filter(k => plot[k] !== undefined).map(key => `
+                                <div class="metric">
+                                    <div class="metric-label"><span>${key.replace(/_/g, ' ')}</span><span>${plot[key].toFixed(2)}</span></div>
+                                    <div class="bar-container"><div class="bar" style="width: ${plot[key] * 100}%; background-color: ${biasColor};"></div></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="text-column">
+                            ${textContentKeys.map(key => `
+                                <div class="list-section">
+                                    <details open>
+                                        <summary>${keyToTitleMap[key] || key.replace(/_/g, ' ')}</summary>
+                                        <div class="content">
+                                            ${Array.isArray(plot[key]) ? plot[key].map(item => (key === 'grounding_quotes' ? `<blockquote>${item}</blockquote>` : `<p>${item}</p>`)).join('') : `<p>${plot[key]}</p>`}
+                                        </div>
+                                    </details>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>`;
+        }
+        
+        function applyFiltersAndSort() {
+            const { searchTerm, spectrumValue } = state.filters;
+            let proposals = [...state.proposals];
+            if (searchTerm) {
+                const lowerCaseSearch = searchTerm.toLowerCase();
+                proposals = proposals.filter(p => p.proposal.toLowerCase().includes(lowerCaseSearch) || (p.media_form && p.media_form.some(mf => mf.toLowerCase().includes(lowerCaseSearch))));
+            }
+            const spaceWeight = spectrumValue / 100;
+            const timeWeight = 1 - spaceWeight;
+            
+            proposals.sort((a, b) => {
+                const scoreA = a.timeScore * timeWeight + a.spaceScore * spaceWeight;
+                const scoreB = b.timeScore * timeWeight + b.spaceScore * spaceWeight;
+                return scoreB - scoreA;
+            });
+            state.filteredProposals = proposals;
+        }
+
+        function render() {
+            applyFiltersAndSort();
+            document.getElementById('grid-container').innerHTML = state.filteredProposals.map(p => createCardHTML(p)).join('');
+            updateControls();
+        }
+
+        function updateControls() {
+            const compareBtn = document.getElementById('compare-btn');
+            const numSelected = state.selectedProposals.length;
+            compareBtn.textContent = `Compare (${numSelected})`;
+            compareBtn.disabled = numSelected < 2;
+        }
+
+        function setupEventListeners() {
+            document.getElementById('spectrum-slider').addEventListener('input', e => { state.filters.spectrumValue = parseInt(e.target.value, 10); render(); });
+            document.getElementById('search-input').addEventListener('input', e => { state.filters.searchTerm = e.target.value; render(); });
+            document.getElementById('grid-container').addEventListener('click', e => {
+                if (e.target.classList.contains('card-select')) {
+                    const proposalId = e.target.dataset.proposalId;
+                    if (e.target.checked) { if (!state.selectedProposals.includes(proposalId)) state.selectedProposals.push(proposalId); }
+                    else { state.selectedProposals = state.selectedProposals.filter(id => id !== proposalId); }
+                    updateControls();
+                    document.querySelector(`[data-proposal-id="${proposalId}"]`).classList.toggle('selected', e.target.checked);
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Pre-calculate sort scores
+            state.proposals = allBatches.map(d => {
+                const p = d.innis_plot;
+                p.timeScore = (p.time_bias || 0) + (p.persistence || 0);
+                p.spaceScore = (p.space_bias || 0) + (p.equity_alignment || 0);
+                return p;
+            });
+            setupEventListeners();
+            render();
+        });
+    </script>
+</body>
+</html>

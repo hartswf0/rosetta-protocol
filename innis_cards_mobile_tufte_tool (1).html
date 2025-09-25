@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Innis Plots — Mobile Tufte Cards</title>
+<style>
+  :root{
+    --bg:#fff; --ink:#111; --muted:#666; --faint:#aaa; --line:#ddd; --accent:#000;
+    --pad:12px; --gap:8px; --radius:14px; --ring:1px; --maxw:1000px; --gridgap:12px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+  html,body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.45}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:calc(var(--pad)*1.25) var(--pad)}
+  header{position:sticky; top:0; background:rgba(255,255,255,0.98); backdrop-filter:saturate(180%) blur(6px); border-bottom:1px solid var(--line); z-index:50}
+  header .wrap{display:grid; grid-template-columns: 1fr; gap:var(--gap)}
+  h1{font-size:1.15rem; margin:0; letter-spacing:0.2px; font-weight:700}
+  .sub{font-size:.82rem; color:var(--muted)}
+  .controls{display:grid; grid-template-columns: 1fr 1fr; gap:var(--gap)}
+  .controls .row{display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap}
+  select, input[type="search"], button, .chip{font:inherit}
+  select, input[type="search"]{padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:#fff}
+  .chip{padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:#fff}
+  .chip[aria-pressed="true"]{background:#f6f6f6; box-shadow: inset 0 0 0 1px #bbb}
+  .btn{padding:8px 12px; border:1px solid var(--ink); background:#fff; border-radius:10px}
+  .btn.muted{border-color:var(--line); color:#333}
+  .btn.tiny{padding:5px 8px; font-size:.82rem}
+  .row .fill{flex:1}
+  .row .tight{white-space:nowrap}
+
+  /* best picks strip */
+  .picks{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px}
+  .pick{padding:6px 10px; border:1px solid var(--ink); border-radius:999px; font-size:.85rem}
+
+  /* views */
+  .view{padding:calc(var(--pad)*1) 0}
+  .grid{display:grid; grid-template-columns: 1fr; gap:var(--gridgap)}
+  @media(min-width:640px){ .grid{grid-template-columns: 1fr 1fr} }
+  @media(min-width:980px){ .grid{grid-template-columns: 1fr 1fr 1fr} }
+
+  /* card */
+  .card{border:1px solid var(--ink); border-radius:var(--radius); padding:14px; background:#fff}
+  .card.rejected{border-style:dashed; opacity:.92}
+  .card h3{margin:.1rem 0 .35rem; font-size:1.05rem}
+  .tags{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px}
+  .tag{border:1px solid var(--line); border-radius:999px; padding:2px 8px; font-size:.76rem; color:#333}
+  .badges{display:flex; gap:6px; align-items:center}
+  .badge{font-size:.74rem; border:1px solid var(--ink); border-radius:999px; padding:2px 8px}
+  .score{margin-left:auto; font-variant-numeric: tabular-nums; font-family:var(--mono)}
+
+  /* metrics */
+  .metrics{display:grid; grid-template-columns: max-content 1fr max-content; gap:6px 10px; align-items:center; margin:10px 0}
+  .mrow{display:contents}
+  .mlabel{font-size:.82rem; color:#222}
+  .mbar{position:relative; height:8px; background:#f5f5f5; border:1px solid #cfcfcf; border-radius:999px; overflow:hidden}
+  .mbar > i{position:absolute; left:0; top:0; bottom:0; width:0}
+  .mbar > i::after{content:""; position:absolute; inset:0; background: repeating-linear-gradient(90deg, #222 0 1px, transparent 1px 6px); opacity:.22}
+  .mval{font-variant-numeric: tabular-nums; font-family:var(--mono); font-size:.82rem; color:#222}
+  .arrow{font-size:.8rem; color:#222; margin-left:4px}
+
+  /* lists */
+  details{border-top:1px solid var(--line); padding-top:8px; margin-top:8px}
+  summary{cursor:pointer; font-size:.9rem}
+  ul{margin:6px 0 0 1.1rem; padding:0}
+  li{margin:2px 0}
+
+  /* table view */
+  .tablewrap{overflow:auto; border:1px solid var(--line); border-radius:var(--radius)}
+  table{border-collapse:separate; border-spacing:0; width:100%}
+  th, td{border-bottom:1px solid #eee; padding:8px 10px; text-align:left; vertical-align:middle}
+  thead th{position:sticky; top:0; background:#fff; border-bottom:1px solid var(--ink); z-index:1}
+  tbody tr:nth-child(odd){background:#fafafa}
+  .meter{height:8px; background:#f5f5f5; border:1px solid #cfcfcf; border-radius:999px; overflow:hidden}
+  .meter > i{display:block; height:100%; width:0; background: #222}
+
+  /* compare tray */
+  .tray{position:sticky; bottom:0; background:#fff; border-top:1px solid var(--ink); padding:8px var(--pad); display:none}
+  .tray.active{display:block}
+  .tray h4{margin:0 0 6px; font-size:.95rem}
+  .tray .cols{display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:8px}
+  .mini{border:1px solid var(--line); border-radius:10px; padding:8px}
+
+  /* loaders / badges */
+  .star{font-size:.95rem}
+
+  /* print */
+  @media print{
+    header, .tray, .tablewrap{position:static}
+    header{border-bottom:0}
+    .controls, .chip.upload, .presetbar, .help{display:none !important}
+    body{background:#fff; color:#000}
+    .wrap{max-width:100%; padding:0}
+    .grid{grid-template-columns: 1fr 1fr}
+    .card{page-break-inside:avoid; border:1px solid #000}
+    .meter > i{background:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div>
+      <h1>Innis Plots — Mobile Tufte Cards</h1>
+      <div class="sub">Data‑dense, print‑friendly small multiples for comparing long‑term hazard‑marking media. Toggle views, set weights, sort, and print.</div>
+    </div>
+    <div class="controls">
+      <div class="row">
+        <input class="fill" id="q" type="search" placeholder="Search proposals, media, failure modes…" />
+        <select id="sort">
+          <option value="score">Sort: Composite Score</option>
+          <option value="proposal">Name (A→Z)</option>
+        </select>
+        <select id="metricSort"></select>
+        <button id="dir" class="btn muted tight" title="Reverse sort">⇅</button>
+      </div>
+      <div class="row presetbar">
+        <button class="chip" data-preset="steward">Preset: Stewardship</button>
+        <button class="chip" data-preset="equity">Equity‑first</button>
+        <button class="chip" data-preset="lowopex">Low Op‑Ex</button>
+        <button class="chip" data-preset="antiapp">Anti‑appropriation</button>
+        <button class="chip" data-preset="reset">Reset</button>
+        <button class="chip" id="toggleView" aria-pressed="false">View: Cards</button>
+        <label class="chip"><input id="onlyBest" type="checkbox" /> Only Best</label>
+      </div>
+      <div class="row help" style="font-size:.82rem; color:#444">Tip: adjust weights below. Arrows (▲▼) compare to the median (good = ▲ for max metrics, ▼ for costs). Print for a clean handout.</div>
+      <div id="picks" class="picks"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="weights"></section>
+  <section id="cards" class="view">
+    <div id="grid" class="grid" role="list"></div>
+  </section>
+  <section id="tableView" class="view" style="display:none">
+    <div class="tablewrap">
+      <table id="table"></table>
+    </div>
+  </section>
+</main>
+
+<div id="tray" class="tray" aria-live="polite"></div>
+
+<script id="data" type="application/json">
+{
+  "innis_batch": [
+    {"innis_plot":{"proposal":"Granite monuments + corner markers","media_form":["stone stele","site perimeter markers","inscription"],"time_bias":0.75,"space_bias":0.15,"persistence":0.60,"legibility_millennia":0.30,"appropriation_risk":0.55,"maintenance_load":0.20,"monopoly_of_knowledge":0.70,"equity_alignment":0.30,"failure_modes":["inscriptions become linguistically opaque","stones quarried/reused for construction","meaning detaches from material over time"],"stewardship_requirements":["use non-repurposable geometries (undercuts, brittle projections)","pair with off-site narrative carriers (rituals, curricula)","embed icon-free hazard affordances (no flat tops, no shade)"]}},
+    {"innis_plot":{"proposal":"Multi-language inscriptions (UN6 + Navajo)","media_form":["text","multilingual inscription"],"time_bias":0.40,"space_bias":0.30,"persistence":0.25,"legibility_millennia":0.20,"appropriation_risk":0.35,"maintenance_load":0.15,"monopoly_of_knowledge":0.65,"equity_alignment":0.40,"failure_modes":["language drift → unreadable","elite translation gatekeeping","political devaluation of included/excluded languages"],"stewardship_requirements":["treat as transitional layer only","refresh plates every few centuries via chartered custodians","mirror warnings in pictorial/ritual carriers"]}},
+    {"innis_plot":{"proposal":"Buried libraries/archives","media_form":["document cache","maps","technical records"],"time_bias":0.55,"space_bias":0.15,"persistence":0.35,"legibility_millennia":0.30,"appropriation_risk":0.50,"maintenance_load":0.30,"monopoly_of_knowledge":0.75,"equity_alignment":0.35,"failure_modes":["formats become unreadable","treasure-hunting triggers excavation","sealed caches invite breaching"],"stewardship_requirements":["use low-tech substrates (stone/ceramic tablets, carbon inks)","place OFF-site in redundant locations with decoy orientation","license copies to distributed stewards (tribal libraries, monasteries)"]}},
+    {"innis_plot":{"proposal":"Stick-figure comics / sequences","media_form":["pictograms","storyboard","processional signage"],"time_bias":0.50,"space_bias":0.25,"persistence":0.40,"legibility_millennia":0.45,"appropriation_risk":0.45,"maintenance_load":0.20,"monopoly_of_knowledge":0.60,"equity_alignment":0.45,"failure_modes":["reading order ambiguity (R→L vs L→R)","icon drift (misread as initiation or healing myth)","vandalism/erosion of panels"],"stewardship_requirements":["force sequence via path choreography and numbering","avoid stylization; keep figures schematic","engrave deep with weathering shields; duplicate along approach corridors"]}},
+    {"innis_plot":{"proposal":"Skull & crossbones (rejected)","media_form":["universal hazard icon"],"time_bias":0.20,"space_bias":0.70,"persistence":0.15,"legibility_millennia":0.15,"appropriation_risk":0.80,"maintenance_load":0.05,"monopoly_of_knowledge":0.40,"equity_alignment":0.30,"failure_modes":["icon becomes fashionable/benign","religious reinterpretation reverses valence","children’s merch normalizes symbol"],"stewardship_requirements":["do not rely on icon alone","if used, subordinate to narrative/ritual carriers","avoid placement on attractive/portable objects"]}},
+    {"innis_plot":{"proposal":"Mr. Yuk / ‘yuk’ faces (rejected)","media_form":["modern poison logo"],"time_bias":0.15,"space_bias":0.75,"persistence":0.10,"legibility_millennia":0.10,"appropriation_risk":0.85,"maintenance_load":0.05,"monopoly_of_knowledge":0.35,"equity_alignment":0.25,"failure_modes":["total cultural obsolescence","becomes comic/mascot","cross-cultural misread"],"stewardship_requirements":["exclude as core channel","use only in present-day education if at all","pair with non-iconic, material deterrents"]}},
+    {"innis_plot":{"proposal":"Landscape of Thorns","media_form":["mega-earthwork","hostile architecture"],"time_bias":0.70,"space_bias":0.35,"persistence":0.55,"legibility_millennia":0.35,"appropriation_risk":0.90,"maintenance_load":0.50,"monopoly_of_knowledge":0.80,"equity_alignment":0.30,"failure_modes":["becomes tourist spectacle → increased intrusion","artists/settlers repurpose materials","mythic attraction outweighs deterrence"],"stewardship_requirements":["de-spectacularize geometry (anti-iconic forms)","disperse smaller deterrent clusters (no singular vista)","close sightlines; avoid ‘monumental’ silhouettes"]}},
+    {"innis_plot":{"proposal":"Big berm / monumental earthworks","media_form":["earthen berm","moats","graded contours"],"time_bias":0.65,"space_bias":0.25,"persistence":0.60,"legibility_millennia":0.35,"appropriation_risk":0.60,"maintenance_load":0.35,"monopoly_of_knowledge":0.75,"equity_alignment":0.35,"failure_modes":["berms regraded for agriculture/roads","settlement uses berm for shelter","geomorphic erosion erases pattern"],"stewardship_requirements":["design negative affordances (steep, crumbling faces)","seed with thorny endemic flora","mark approach corridors far from core to deter entry earlier"]}},
+    {"innis_plot":{"proposal":"Ray cats folklore","media_form":["bio-signal","oral tradition","songs/stories","omens"],"time_bias":0.85,"space_bias":0.55,"persistence":0.50,"legibility_millennia":0.55,"appropriation_risk":0.40,"maintenance_load":0.60,"monopoly_of_knowledge":0.45,"equity_alignment":0.60,"failure_modes":["biotech trait lost without maintenance","folklore aestheticized; prescriptive edge blunts","cats become pilgrimage object"],"stewardship_requirements":["license open, distributed breeding protocols","embed songs in schools/festivals beyond the site","never stage performances at the repository"]}},
+    {"innis_plot":{"proposal":"Digital/public storytelling (podcast, web)","media_form":["podcast","articles","memes"],"time_bias":0.10,"space_bias":0.95,"persistence":0.05,"legibility_millennia":0.15,"appropriation_risk":0.30,"maintenance_load":0.05,"monopoly_of_knowledge":0.50,"equity_alignment":0.50,"failure_modes":["link rot / format loss","platform collapse","narrative drift into entertainment"],"stewardship_requirements":["treat as recruitment channel for stewards now","print-to-stone/ceramic summaries for archival","mirror in community radio and print pamphlets"]}},
+    {"innis_plot":{"proposal":"On-site performance/ritual reenactment","media_form":["annual rite","procession","taboo enforcement"],"time_bias":0.80,"space_bias":0.30,"persistence":0.45,"legibility_millennia":0.55,"appropriation_risk":0.50,"maintenance_load":0.70,"monopoly_of_knowledge":0.35,"equity_alignment":0.70,"failure_modes":["festivalization → tourism","clericalization → gatekeeping caste","ritual meaning inverts (purification → attraction)"],"stewardship_requirements":["hold rites OFF-site; mark site as taboo/no-gathering","rotate custodial roles across communities","codify ‘no spectators’ rule; keep rites small, didactic"]}},
+    {"innis_plot":{"proposal":"Indigenous treaty-based guardianship","media_form":["treaty/charter","oral law","place-names","custodian orders"],"time_bias":0.90,"space_bias":0.40,"persistence":0.65,"legibility_millennia":0.60,"appropriation_risk":0.35,"maintenance_load":0.75,"monopoly_of_knowledge":0.30,"equity_alignment":0.85,"failure_modes":["state defunding or abrogation of treaty","cultural suppression disrupts transmission","political turnover replaces stewards"],"stewardship_requirements":["endow a perpetual fund controlled by tribal nations","protect language/education programs in law","record parallel charters (stone tablets + oral recitation) and renew oaths each generation"]}}
+  ]
+}
+</script>
+
+<script>
+(function(){
+  const raw = JSON.parse(document.getElementById('data').textContent);
+  const rows = raw.innis_batch.map(d=>d.innis_plot);
+
+  const metrics = [
+    {key:'time_bias', label:'Time Bias', good:'max'},
+    {key:'space_bias', label:'Space Bias', good:'max'},
+    {key:'persistence', label:'Persistence', good:'max'},
+    {key:'legibility_millennia', label:'Legibility (kyr)', good:'max'},
+    {key:'appropriation_risk', label:'Appropriation Risk', good:'min'},
+    {key:'maintenance_load', label:'Maintenance Load', good:'min'},
+    {key:'monopoly_of_knowledge', label:'Monopoly of Knowledge', good:'min'},
+    {key:'equity_alignment', label:'Equity Alignment', good:'max'}
+  ];
+
+  // default weights tuned for long-horizon stewardship
+  let weights = {
+    time_bias:0.4,
+    space_bias:0.1,
+    persistence:0.8,
+    legibility_millennia:1.0,
+    appropriation_risk:1.0,
+    maintenance_load:0.6,
+    monopoly_of_knowledge:0.6,
+    equity_alignment:0.8
+  };
+
+  // build weight sliders
+  const wHost = document.getElementById('weights');
+  wHost.innerHTML = `<div class="card" style="margin-top:12px">
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px">
+      <strong>Weights</strong>
+      <span class="sub">(drag to emphasize criteria; costs are auto-inverted)</span>
+      <button id="zeroWeights" class="btn tiny muted" title="Zero all weights">Zero</button>
+      <button id="normalizeWeights" class="btn tiny muted" title="Normalize weights to sum ≈ 1">Normalize</button>
+    </div>
+    ${metrics.map(m=>{
+      const val = weights[m.key] ?? 0;
+      return `<div class="mrow">
+        <div class="mlabel">${m.label}${m.good==='min'? ' (cost)': ''}</div>
+        <input type="range" min="0" max="1.5" step="0.05" data-key="${m.key}" value="${val}" />
+        <div class="mval" id="w-${m.key}">${val.toFixed(2)}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  wHost.addEventListener('input', e=>{
+    if(e.target.type==='range'){
+      const k=e.target.dataset.key; weights[k]=+e.target.value; document.getElementById('w-'+k).textContent=weights[k].toFixed(2);
+      render();
+    }
+  });
+  document.getElementById('zeroWeights').onclick=()=>{metrics.forEach(m=>weights[m.key]=0); document.querySelectorAll('#weights input[type=range]').forEach(r=>{r.value=0; r.dispatchEvent(new Event('input'));});}
+  document.getElementById('normalizeWeights').onclick=()=>{const s=Object.values(weights).reduce((a,b)=>a+b,0)||1; metrics.forEach(m=>{weights[m.key]=weights[m.key]/s}); document.querySelectorAll('#weights input[type=range]').forEach(r=>{const k=r.dataset.key; r.value=weights[k]; document.getElementById('w-'+k).textContent=weights[k].toFixed(2)}); render();}
+
+  // sort controls
+  const sortSel = document.getElementById('sort');
+  const metricSortSel = document.getElementById('metricSort');
+  metricSortSel.innerHTML = '<option value="">(or sort by a single metric)</option>' + metrics.map(m=>`<option value="${m.key}">${m.label}</option>`).join('');
+  let sortKey='score', sortDir= -1, sortMetric='';
+  document.getElementById('dir').onclick=()=>{sortDir*=-1; render();}
+  sortSel.onchange=()=>{sortKey=sortSel.value; render();}
+  metricSortSel.onchange=()=>{sortMetric=metricSortSel.value; if(sortMetric) sortKey=sortMetric; render();}
+
+  // search & filters
+  const q = document.getElementById('q');
+  q.addEventListener('input', ()=>render());
+  const onlyBest = document.getElementById('onlyBest');
+  onlyBest.addEventListener('change', ()=>render());
+
+  // view toggler
+  const toggleView = document.getElementById('toggleView');
+  toggleView.onclick=()=>{
+    const isTable = toggleView.getAttribute('aria-pressed')==='true';
+    toggleView.setAttribute('aria-pressed', String(!isTable));
+    toggleView.textContent = !isTable ? 'View: Table' : 'View: Cards';
+    document.getElementById('cards').style.display = !isTable ? 'none' : '';
+    document.getElementById('tableView').style.display = !isTable ? '' : 'none';
+  }
+
+  // presets
+  document.querySelectorAll('[data-preset]').forEach(btn=>btn.onclick=()=>{
+    const p = btn.getAttribute('data-preset');
+    const set = {
+      steward: {time_bias:.5, space_bias:.1, persistence:.8, legibility_millennia:1.0, appropriation_risk:1.0, maintenance_load:.6, monopoly_of_knowledge:.6, equity_alignment:.8},
+      equity: {time_bias:.3, space_bias:.1, persistence:.5, legibility_millennia:.8, appropriation_risk:.9, maintenance_load:.4, monopoly_of_knowledge:1.0, equity_alignment:1.2},
+      lowopex: {time_bias:.3, space_bias:.1, persistence:.6, legibility_millennia:.6, appropriation_risk:.6, maintenance_load:1.2, monopoly_of_knowledge:.4, equity_alignment:.5},
+      antiapp: {time_bias:.4, space_bias:.1, persistence:.6, legibility_millennia:.8, appropriation_risk:1.4, maintenance_load:.5, monopoly_of_knowledge:.6, equity_alignment:.7},
+      reset: {time_bias:.4, space_bias:.1, persistence:.8, legibility_millennia:1.0, appropriation_risk:1.0, maintenance_load:.6, monopoly_of_knowledge:.6, equity_alignment:.8}
+    }[p];
+    Object.assign(weights, set);
+    document.querySelectorAll('#weights input[type=range]').forEach(r=>{const k=r.dataset.key; r.value=weights[k]; document.getElementById('w-'+k).textContent=weights[k].toFixed(2)});
+    render();
+  });
+
+  // utility: medians for arrows
+  const med = Object.fromEntries(metrics.map(m=>[m.key, median(rows.map(r=>r[m.key]))]));
+  function median(arr){const a=[...arr].sort((x,y)=>x-y);const mid=(a.length-1)/2; return (a[Math.floor(mid)]+a[Math.ceil(mid)])/2}
+
+  // normalize value in direction of good (1 is better)
+  function norm(key, val){const m=metrics.find(x=>x.key===key); return m.good==='max'? val : (1-val);}
+
+  // score & pareto
+  function score(row){
+    let s=0; for(const m of metrics){ s += (weights[m.key]||0) * norm(m.key, row[m.key]); }
+    return s;
+  }
+  function pareto(rows){
+    // compute on normed metrics
+    const nm = rows.map(r=>({r, v:Object.fromEntries(metrics.map(m=>[m.key, norm(m.key, r[m.key])])) }));
+    return nm.filter((a, i)=> !nm.some((b,j)=> j!==i && dominates(b.v, a.v))).map(x=>x.r);
+  }
+  function dominates(b, a){ // b dominates a if b>=a in all and > in one
+    let ge=true, gt=false; for(const m of metrics){ if(b[m.key] < a[m.key]) ge=false; if(b[m.key] > a[m.key]) gt=true; }
+    return ge && gt;
+  }
+
+  // selection for compare
+  const selected = new Set();
+
+  // rendering
+  function render(){
+    const enriched = rows.map(r=>({ ...r, _score: score(r), _rejected: /rejected/i.test(r.proposal)}));
+
+    const bestSet = new Set(pareto(rows).map(r=>r.proposal));
+
+    // best picks strip (top 3 by score intersect Pareto)
+    const top = [...enriched].sort((a,b)=>b._score-a._score).filter(x=>bestSet.has(x.proposal)).slice(0,3);
+    const picksHost = document.getElementById('picks');
+    picksHost.innerHTML = top.map(t=>`<span class="pick">★ ${t.proposal}</span>`).join('');
+
+    // filter by search and onlyBest
+    const term = q.value.trim().toLowerCase();
+    let view = enriched.filter(r=>{
+      if(onlyBest.checked && !bestSet.has(r.proposal)) return false;
+      if(!term) return true;
+      const hay = [r.proposal, ...(r.media_form||[]), ...(r.failure_modes||[]), ...(r.stewardship_requirements||[])].join(' \n ').toLowerCase();
+      return hay.includes(term);
+    });
+
+    // sort
+    const key = sortMetric || sortKey;
+    view.sort((a,b)=>{
+      const A = key==='score'? a._score : (key==='proposal'? a.proposal : a[key]);
+      const B = key==='score'? b._score : (key==='proposal'? b.proposal : b[key]);
+      return (A<B? -1: A>B? 1: 0) * sortDir;
+    });
+
+    // cards
+    const grid = document.getElementById('grid');
+    grid.innerHTML = view.map(r=>cardHTML(r, bestSet.has(r.proposal))).join('');
+
+    // table
+    renderTable(view, bestSet);
+
+    // tray compare
+    renderTray();
+
+    // attach checkbox listeners
+    grid.querySelectorAll('input[type=checkbox][data-proposal]').forEach(cb=>{
+      cb.onchange = ()=>{ const p = cb.getAttribute('data-proposal'); if(cb.checked) selected.add(p); else selected.delete(p); renderTray(); };
+      cb.checked = selected.has(cb.getAttribute('data-proposal'));
+    });
+  }
+
+  function arrowFor(mk, val){
+    const m=metrics.find(x=>x.key===mk); const medv=med[mk];
+    if(m.good==='max') return val>=medv? '▲' : '▼';
+    // for costs, lower is better
+    return val<=medv? '▲' : '▼';
+  }
+
+  function cardHTML(r, isBest){
+    const badge = r._rejected ? '<span class="badge">rejected</span>' : (isBest? '<span class="badge">★ best</span>' : '');
+    return `<article class="card ${r._rejected?'rejected':''}" role="listitem">
+      <div class="badges"><h3>${r.proposal}</h3>${badge}<div class="score" title="Composite score">${r._score.toFixed(2)}</div></div>
+      <div class="tags">${(r.media_form||[]).map(s=>`<span class="tag">${s}</span>`).join('')}</div>
+      <div class="metrics" aria-label="metrics">
+        ${metrics.map(m=>{
+          const v=r[m.key];
+          const pct=Math.round(v*100);
+          const arrow=arrowFor(m.key, v);
+          return `<div class="mlabel">${m.label} ${m.good==='min'?'<span class="sub">(cost)</span>':''}</div>
+                  <div class="mbar" title="${pct}%"><i style="width:${pct}%"></i></div>
+                  <div class="mval">${pct}% <span class="arrow" aria-hidden="true">${arrow}</span></div>`;
+        }).join('')}
+      </div>
+      <label class="chip"><input type="checkbox" data-proposal="${r.proposal}"/> Compare</label>
+      <details>
+        <summary>Failure modes & stewardship</summary>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:6px">
+          <div>
+            <div class="sub" style="margin-bottom:4px">Failure modes</div>
+            <ul>${(r.failure_modes||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
+          </div>
+          <div>
+            <div class="sub" style="margin-bottom:4px">Stewardship requirements</div>
+            <ul>${(r.stewardship_requirements||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </details>
+    </article>`;
+  }
+
+  function renderTable(view, bestSet){
+    const table = document.getElementById('table');
+    const head = `<thead><tr>
+      <th>Proposal</th>
+      ${metrics.map(m=>`<th>${m.label}${m.good==='min'? ' (cost)':''}</th>`).join('')}
+      <th>Score</th>
+    </tr></thead>`;
+    const body = `<tbody>
+      ${view.map(r=>{
+        return `<tr>
+          <td>${bestSet.has(r.proposal)? '★ ':''}${r._rejected? '✖ ':''}${r.proposal}</td>
+          ${metrics.map(m=>{
+            const pct = Math.round(r[m.key]*100);
+            return `<td>
+              <div class="meter" title="${pct}%"><i style="width:${pct}%"></i></div>
+              <div class="mval" style="font-size:.78rem">${pct}% ${arrowFor(m.key, r[m.key])}</div>
+            </td>`;
+          }).join('')}
+          <td class="mval">${r._score.toFixed(2)}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>`;
+    table.innerHTML = head+body;
+  }
+
+  function renderTray(){
+    const tray = document.getElementById('tray');
+    const picks = rows.filter(r=>selected.has(r.proposal));
+    if(picks.length===0){ tray.classList.remove('active'); tray.innerHTML=''; return; }
+    tray.classList.add('active');
+    const cols = picks.map(r=>{
+      return `<div class="mini">
+        <div style="display:flex; gap:6px; align-items:center"><strong>${/rejected/i.test(r.proposal)?'✖ ':''}${r.proposal}</strong><span class="star">${'★'.repeat(0)}</span></div>
+        ${metrics.map(m=>{
+          const pct = Math.round(r[m.key]*100);
+          return `<div class="mrow" style="grid-template-columns: max-content 1fr max-content; display:grid; gap:4px; align-items:center; margin-top:4px">
+            <div class="mlabel" style="font-size:.78rem">${m.label.replace(' (kyr)','')}</div>
+            <div class="meter"><i style="width:${pct}%"></i></div>
+            <div class="mval" style="font-size:.78rem">${pct}%</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+    tray.innerHTML = `<h4>Compare (${picks.length})</h4><div class="cols">${cols}</div>`;
+  }
+
+  // initial render
+  render();
+})();
+</script>
+</body>
+</html>

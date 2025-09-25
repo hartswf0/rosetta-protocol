@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sharpen & Hone — Time/Space Spectrum Engine</title>
+<style>
+  :root{
+    /* NASA–folk shop palette */
+    --bg:#f7f6f2;                 /* craft off‑white */
+    --grid:#e6e3db;               /* graph paper lines */
+    --ink:#1b1b1b;                /* body text */
+    --muted:#5b5b5b;
+    --card:#ffffff;
+    --line:#000000;
+    --blue:#1f66ff;               /* NASA blue */
+    --red:#e53935;                /* alert red */
+    --bar:#8bb5ff;                /* gradient tail */
+    --shadow:0 6px 0 var(--line);
+  }
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink); font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:
+      repeating-linear-gradient(0deg, var(--bg), var(--bg) 22px, var(--grid) 23px),
+      repeating-linear-gradient(90deg, transparent, transparent 22px, var(--grid) 23px);
+    padding:12px;
+  }
+  .app{max-width:1220px; margin:0 auto;}
+  .toolbar{
+    background:var(--card); border:2px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow);
+    display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; justify-content:space-between;
+  }
+  .group{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+  label.cap{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,Monaco,monospace; font-size:.78rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase}
+  input, select, button{border:2px solid var(--line); border-radius:10px; padding:.5rem .65rem; background:#fff; font-size:.95rem}
+  button{font-weight:900; text-transform:uppercase; box-shadow:var(--shadow); cursor:pointer}
+  .primary{background:var(--blue); color:#fff}
+  .chip{border:2px dashed var(--line); padding:.2rem .5rem; border-radius:8px; font-family:ui-monospace; font-size:.8rem}
+
+  .dial{display:flex; align-items:center; gap:8px}
+  .dial input[type=range]{width:180px}
+  .toggle{--knob:#fff; display:flex; align-items:center; gap:6px}
+  .toggle input{appearance:none; width:46px; height:26px; border:2px solid var(--line); border-radius:18px; background:#fff; position:relative}
+  .toggle input::after{content:""; width:18px; height:18px; border:2px solid var(--line); border-radius:50%; background:var(--knob); position:absolute; top:2px; left:2px; transition:transform .15s}
+  .toggle input:checked{background:linear-gradient(90deg,#cfe1ff,#9ec1ff)}
+  .toggle input:checked::after{transform:translateX(20px)}
+
+  .layout{display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px}
+  @media(min-width:900px){ .layout{ grid-template-columns: 320px 1fr; } }
+
+  .panel{background:var(--card); border:2px solid var(--line); border-radius:12px; box-shadow:var(--shadow)}
+  .panel .h{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:2px solid var(--line)}
+  .panel .h h2{margin:0; font-size:1rem}
+  .panel .c{padding:12px}
+
+  /* Map strip */
+  .map{display:flex; flex-direction:column; gap:10px}
+  .axis{position:relative; height:10px; background:repeating-linear-gradient(90deg,#d9e5ff,#d9e5ff 10px,#c9d7ff 11px); border:2px solid var(--line); border-radius:999px}
+  .axis::before{content:"⏳ Monument"; position:absolute; left:8px; top:-18px; font-family:ui-monospace; font-size:.75rem; font-weight:800}
+  .axis::after{content:"🌍 Broadcast"; position:absolute; right:8px; top:-18px; font-family:ui-monospace; font-size:.75rem; font-weight:800}
+  .pin{position:absolute; top:-6px; transform:translateX(-50%);}
+  .pin .dot{width:16px; height:16px; background:var(--blue); border:2px solid var(--line); border-radius:50%}
+  .pin .tag{position:absolute; top:20px; left:50%; transform:translateX(-50%); background:#fff; border:2px solid var(--line); border-radius:8px; padding:.1rem .35rem; white-space:nowrap; font-size:.75rem}
+
+  /* Cards */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px}
+  .card{position:relative; background:#fff; border:2px solid var(--line); border-radius:12px; box-shadow:var(--shadow); padding:12px}
+  .card .tape{position:absolute; left:-6px; top:-10px; background:linear-gradient(180deg,#fff9df,#f6e9b2); border:2px solid var(--line); border-radius:6px; padding:.15rem .4rem; font-family:ui-monospace; font-size:.72rem; font-weight:800; text-transform:uppercase; transform:rotate(-2deg)}
+  .title{font-weight:900; font-size:1.05rem; margin:2px 0 0}
+  .subtitle{font-style:italic; color:var(--muted); font-size:.9rem; margin:0 0 8px}
+  .badge{display:inline-block; margin:2px 6px 0 0; font-family:ui-monospace; font-size:.72rem; border:2px dashed var(--line); border-radius:8px; padding:.05rem .35rem}
+
+  .metrics{margin-top:6px}
+  .metric{margin:6px 0}
+  .metric .lab{display:flex; justify-content:space-between; font-family:ui-monospace; font-size:.8rem; text-transform:uppercase}
+  .barWrap{border:1px dashed var(--line); border-radius:8px; overflow:hidden}
+  .bar{height:9px; background:linear-gradient(90deg,var(--blue),var(--bar)); border-right:2px solid var(--line)}
+
+  details summary{cursor:pointer; font-family:ui-monospace; font-weight:900; text-transform:uppercase; font-size:.85rem}
+  ul{margin:6px 0 0; padding-left:18px}
+  li{margin:6px 0}
+
+  /* Presentation */
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.72); display:none; align-items:center; justify-content:center; z-index:50}
+  .overlay.active{display:flex}
+  .slide{width:min(1000px,92vw); height:min(90vh,840px); background:#fff; border:3px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:auto}
+  .slide .ph{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:3px solid var(--line)}
+  .slide .pc{padding:14px 16px}
+  .navbtn{position:fixed; top:50%; transform:translateY(-50%); border-radius:50%; width:56px; height:56px; font-size:2rem; background:#fff}
+  .navbtn.left{left:18px}
+  .navbtn.right{right:18px}
+  .counter{position:fixed; bottom:12px; left:50%; transform:translateX(-50%); background:#000; color:#fff; border-radius:20px; padding:6px 10px; font-family:ui-monospace; font-size:.85rem}
+
+  /* Modes */
+  .textOnly .metrics{display:none}
+
+  /* Print */
+  @media print{
+    .toolbar, .overlay{display:none !important}
+    .app{max-width:none}
+    body{background:#fff}
+    .card{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="toolbar" role="region" aria-label="Controls">
+    <div class="group">
+      <span class="chip">Sharpen & Hone — Time/Space Spectrum</span>
+      <div class="dial">
+        <label class="cap" for="spectrum">Dial</label>
+        <input id="spectrum" type="range" min="0" max="100" value="50" />
+        <span class="chip" id="dialLabel">Hybrid</span>
+      </div>
+      <div class="toggle" title="Toggle metrics">
+        <label class="cap" for="metrics">Metrics</label>
+        <input id="metrics" type="checkbox" checked />
+        <span class="chip" id="metricsState">On</span>
+      </div>
+    </div>
+    <div class="group">
+      <label class="cap" for="q">Filter</label>
+      <input id="q" type="search" placeholder="Search proposals, media…" />
+      <label class="cap" for="sort">Sort</label>
+      <select id="sort">
+        <option value="default">Default</option>
+        <option value="proposal">Proposal</option>
+        <option value="time_bias">Time Bias</option>
+        <option value="space_bias">Space Bias</option>
+        <option value="persistence">Persistence</option>
+        <option value="legibility_millennia">Legibility (Millennia)</option>
+        <option value="monopoly_of_knowledge">Monopoly of Knowledge</option>
+        <option value="equity_alignment">Equity Alignment</option>
+      </select>
+      <select id="dir">
+        <option value="desc">Desc</option>
+        <option value="asc">Asc</option>
+      </select>
+      <button id="present" class="primary">Presentation</button>
+      <button id="printBtn">Print</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <section class="panel" aria-labelledby="mapH">
+      <div class="h"><h2 id="mapH">Spectrum Map</h2><span class="chip" id="mapMeta">0 items</span></div>
+      <div class="c">
+        <div class="map">
+          <div class="axis" id="axis" aria-hidden="true"></div>
+          <small style="display:block;color:var(--muted);margin-top:4px">Pins are positioned by normalized (Time vs Space) balance. Use the Dial to bias the UI toward Monument (⏳) or Broadcast (🌍).</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="gridH">
+      <div class="h"><h2 id="gridH">Evidence Cards</h2><span class="chip" id="count">0</span></div>
+      <div class="c">
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Presentation overlay -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Presentation">
+  <button class="navbtn left" id="prev">‹</button>
+  <div class="slide" id="slide">
+    <div class="ph"><strong id="pTitle">Title</strong><span class="chip" id="pMeta"></span></div>
+    <div class="pc" id="pBody"></div>
+  </div>
+  <button class="navbtn right" id="next">›</button>
+  <div class="counter" id="ctr">0 / 0</div>
+</div>
+
+<script>
+// -------------------- Data (evidence) --------------------
+const data = {"innis_batch":[
+  {"innis_plot":{"proposal":"The Egyptian Stone Monopoly (Absolute Monarchy & Priesthood)","media_form":["stone inscription","monumental architecture (pyramids)","hieroglyphics"],"time_bias":0.95,"space_bias":0.10,"persistence":0.95,"legibility_millennia":0.10,"appropriation_risk":0.50,"maintenance_load":0.90,"monopoly_of_knowledge":0.90,"equity_alignment":0.10,"failure_modes":["A monopoly of knowledge supported by a difficult script resisted demands for change and brought the Egyptian Empire to an end.","The monopoly of knowledge centring around stone and hieroglyphics was exposed to competition from papyrus as a new and more efficient medium.","The enormous economic drain of the pyramids enabled the priests of Ra or the sun cult at Heliopolis to exploit discontent."],"stewardship_requirements":["Mummification and construction of the pyramids as devices for emphasizing control over time were accompanied by the development of the art of pictorial representation as part of the funerary ritual and by the emergence of writing.","The spoken word, by which the orders of the monarch were given, in itself possessed creative efficiency which in turn was perpetuated in the written word in the tomb."]}},
+  {"innis_plot":{"proposal":"The Greek Oral Tradition (The Flexible Polis)","media_form":["oral tradition","epic poetry","drama","dialectic"],"time_bias":0.60,"space_bias":0.40,"persistence":0.40,"legibility_millennia":0.75,"appropriation_risk":0.30,"maintenance_load":0.15,"monopoly_of_knowledge":0.15,"equity_alignment":0.85,"failure_modes":["Richness of the oral tradition made for a flexible civilization but not a civilization which could be disciplined to the point of effective political unity.","The written tradition had brought the vitality of the oral tradition to an end. In the words of Nietzsche, 'Everyone being allowed to read ruineth in the long run not only writing but also thinking.'","The feudal hierarchy of Greece was weakened by an emphasis on writing which became a type of intelligence test. A writing age was essentially an egoistic age."],"stewardship_requirements":["My bias is with the oral tradition, particularly as reflected in Greek civilization, and with the necessity of recapturing something of its spirit.","The flexibility of law shown in the major reforms... was possible before a written tradition had become firmly entrenched.","An oral tradition implies freshness and elasticity but students of anthropology have pointed to the binding character of custom in primitive cultures."]}},
+  {"innis_plot":{"proposal":"The Parchment Codex (The Christian Monopoly of Time)","media_form":["parchment codex","vellum","scripture","monastic scriptoria"],"time_bias":0.90,"space_bias":0.25,"persistence":0.85,"legibility_millennia":0.40,"appropriation_risk":0.60,"maintenance_load":0.80,"monopoly_of_knowledge":0.95,"equity_alignment":0.15,"failure_modes":["Since the material of a civilization dominated by the papyrus roll had to be recopied into the parchment codex, a thorough system of censorship was involved.","'Whatever knowledge man has acquired outside Holy Writ, if it be harmful it is there condemned; if it be wholesome it is there contained' (St. Augustine).","Decline of the monopoly of knowledge based on parchment... followed the competition of paper which supported the growth of trade and of cities, the rise of vernaculars... and emphasized the concept of space in nationalism."],"stewardship_requirements":["The durability of parchment and the convenience of the codex for reference made it particularly suitable for the large books typical of scriptures and legal works.","Durable parchment books could be moved over long distances and transferred from regions of danger to regions of safety.","The monopoly of knowledge centring around parchment emphasized religion at the expense of law."]}},
+  {"innis_plot":{"proposal":"The Printing Press (The Bias of the Vernacular)","media_form":["paper","moveable type","printed book","newspaper","pamphlet"],"time_bias":0.15,"space_bias":0.90,"persistence":0.50,"legibility_millennia":0.60,"appropriation_risk":0.85,"maintenance_load":0.40,"monopoly_of_knowledge":0.40,"equity_alignment":0.65,"failure_modes":["The large-scale mechanization of knowledge is characterized by imperfect competition and the active creation of monopolies in language which prevent understanding and hasten appeals to force.","Printing has emphasized vernaculars and divisions between states based on language without implying a concern with time.","Education in the words of Laski became the art of teaching men to be deceived by the printed word. 'The most important service rendered by the press and the magazines is that of educating people to approach printed matter with distrust.'"],"stewardship_requirements":["The monopoly position of the Bible and the Latin language in the church was destroyed by the press and in its place there developed a widespread market for the Bible in the vernacular...",
+"A guarantee of freedom of the press in print was intended to further sanctify the printed word and to provide a rigid bulwark for the shelter of vested interests."]}},
+  {"innis_plot":{"proposal":"Mechanized Communication (The Obsession with the Present)","media_form":["radio","telegraph","fast press","cinema","television"],"time_bias":0.05,"space_bias":0.95,"persistence":0.10,"legibility_millennia":0.15,"appropriation_risk":0.90,"maintenance_load":0.30,"monopoly_of_knowledge":0.70,"equity_alignment":0.50,"failure_modes":["Lack of interest in problems of duration in Western civilization suggests that the bias of paper and printing has persisted in a concern with space.","The disastrous effect of the monopoly of communication based on the eye hastened the development of a competitive type of communication based on the ear, in the radio...",
+"Enormous improvements in communication have made understanding more difficult. Even science, mathematics, and music as the last refuge of the Western mind have come under the spell of the mechanized vernacular."],"stewardship_requirements":["Competition from the new medium, the radio, involved an appeal to the ear rather than to the eye and consequently an emphasis on centralization.","The bias of communication in paper and the printing industry was destined to be offset by the bias of the radio.","Journalism, in the words of Henry James, became a criticism of the moment at the moment."]}}
+]};
+
+// -------------------- State --------------------
+const state = {
+  items: data.innis_batch.map(d=>d.innis_plot),
+  filtered: [],
+  dial: 50,             // 0 = Time / 100 = Space (UI emphasis)
+  showMetrics: true,
+  sortBy: 'default',
+  sortDir: 'desc',
+  q: '',
+  pIndex: 0,
+};
+
+// -------------------- DOM refs --------------------
+const grid = document.getElementById('grid');
+const count = document.getElementById('count');
+const axis = document.getElementById('axis');
+const mapMeta = document.getElementById('mapMeta');
+const dial = document.getElementById('spectrum');
+const dialLabel = document.getElementById('dialLabel');
+const metricsToggle = document.getElementById('metrics');
+const metricsState = document.getElementById('metricsState');
+const q = document.getElementById('q');
+const sortSel = document.getElementById('sort');
+const dirSel = document.getElementById('dir');
+const presentBtn = document.getElementById('present');
+const printBtn = document.getElementById('printBtn');
+
+const overlay = document.getElementById('overlay');
+const slide = document.getElementById('slide');
+const pTitle = document.getElementById('pTitle');
+const pMeta = document.getElementById('pMeta');
+const pBody = document.getElementById('pBody');
+const prev = document.getElementById('prev');
+const next = document.getElementById('next');
+const ctr = document.getElementById('ctr');
+
+// -------------------- Helpers --------------------
+const tc = s=>s.replace(/_/g,' ').replace(/\w\S*/g,t=>t[0].toUpperCase()+t.slice(1).toLowerCase());
+const fmt = n=>n.toFixed(2);
+function timeSpacePosition(it){
+  // Normalize to a single 0..1 position where 0=Time, 1=Space
+  const t = typeof it.time_bias==='number'? it.time_bias : 0;
+  const s = typeof it.space_bias==='number'? it.space_bias : 0;
+  const sum = t + s || 1;
+  const sp = s / sum; // favor declared balance
+  return sp; // 0..1
+}
+
+function score(it, key){return typeof it[key]==='number'? it[key] : 0}
+
+// -------------------- Render Map --------------------
+function renderMap(items){
+  axis.innerHTML = '';
+  const rect = axis.getBoundingClientRect();
+  const w = rect.width || axis.clientWidth || 600;
+  items.forEach(it=>{
+    const x = timeSpacePosition(it) * w;
+    const pin = document.createElement('div');
+    pin.className = 'pin';
+    pin.style.left = `${x}px`;
+    pin.innerHTML = `<div class="dot" title="${it.proposal}"></div><div class="tag">${it.proposal}</div>`;
+    axis.appendChild(pin);
+  });
+  mapMeta.textContent = `${items.length} items`;
+}
+
+// -------------------- Card View --------------------
+const METRICS = ['time_bias','space_bias','persistence','legibility_millennia','appropriation_risk','maintenance_load','monopoly_of_knowledge','equity_alignment'];
+
+function card(it){
+  const id = it.proposal.replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+  const tapeNo = String(Math.abs([...it.proposal].reduce((a,c)=>a+c.charCodeAt(0),0))%100).padStart(2,'0');
+  return `
+  <article class="card" data-id="${id}">
+    <span class="tape">Spec ${tapeNo}</span>
+    <h3 class="title">${it.proposal}</h3>
+    <p class="subtitle">${it.media_form.join(', ')}</p>
+    ${badges(it)}
+    <div class="metrics">
+      ${METRICS.map(k=>`
+        <div class="metric">
+          <div class="lab"><span>${tc(k)}</span><span>${fmt(it[k])}</span></div>
+          <div class="barWrap"><div class="bar" style="width:${it[k]*100}%"></div></div>
+        </div>`).join('')}
+    </div>
+    <details>
+      <summary>Failure Modes</summary>
+      <ul>${it.failure_modes.map(li=>`<li>${li}</li>`).join('')}</ul>
+    </details>
+    <details>
+      <summary>Stewardship Requirements</summary>
+      <ul>${it.stewardship_requirements.map(li=>`<li>${li}</li>`).join('')}</ul>
+    </details>
+    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap">
+      <button class="primary" data-action="present-one">Present</button>
+      <button data-action="copy-json">Copy JSON</button>
+      <button data-action="text-only">Text</button>
+      <button data-action="metrics-only">Metrics</button>
+    </div>
+  </article>`;
+}
+
+function badges(it){
+  const t = score(it,'time_bias'), s = score(it,'space_bias');
+  const mode = t > s ? '⏳ Time‑leaning' : (s > t ? '🌍 Space‑leaning' : 'Hybrid');
+  return `<span class="badge">${mode}</span><span class="badge">Persistence ${fmt(it.persistence)}</span>`;
+}
+
+function renderGrid(items){
+  grid.innerHTML = items.map(card).join('');
+  count.textContent = `${items.length}`;
+}
+
+// -------------------- Filter & Sort --------------------
+function apply(){
+  const qv = state.q.trim().toLowerCase();
+  let items = [...state.items];
+  if(qv){
+    items = items.filter(it => it.proposal.toLowerCase().includes(qv) || it.media_form.some(m=>m.toLowerCase().includes(qv)) || it.failure_modes.join(' ').toLowerCase().includes(qv));
+  }
+  if(state.sortBy !== 'default'){
+    items.sort((a,b)=>{
+      const A = a[state.sortBy], B = b[state.sortBy];
+      if(typeof A === 'string') return state.sortDir==='asc'? A.localeCompare(B): B.localeCompare(A);
+      return state.sortDir==='asc'? A-B: B-A;
+    });
+  }
+  state.filtered = items;
+}
+
+function render(){
+  document.body.classList.toggle('textOnly', !state.showMetrics);
+  apply();
+  renderMap(state.filtered);
+  renderGrid(state.filtered);
+  updateDial();
+}
+
+// -------------------- Dial (UI aesthetic bias) --------------------
+function updateDial(){
+  const v = state.dial;
+  let label = 'Hybrid';
+  if(v < 33) label = '⏳ Monument';
+  else if(v > 66) label = '🌍 Broadcast';
+  dialLabel.textContent = label;
+  // Optionally sway accent color by dial (subtle)
+  const blue = 0x1f66ff, red = 0xe53935;
+  const t = v/100; // 0..1 toward space
+  const mix = (a,b)=> `#${[16,8,0].map(shift=>{
+    const ca=(a>>shift)&255, cb=(b>>shift)&255, cc=Math.round(ca*(1-t)+cb*t).toString(16).padStart(2,'0');
+    return cc;}).join('')}`;
+  document.documentElement.style.setProperty('--blue', mix(blue, red));
+}
+
+// -------------------- Presentation --------------------
+function openPresentation(start=0){
+  state.pIndex = start;
+  overlay.classList.add('active');
+  drawSlide();
+}
+function closePresentation(){ overlay.classList.remove('active'); }
+function drawSlide(){
+  const items = state.filtered; if(items.length===0) return;
+  const it = items[(state.pIndex+items.length)%items.length];
+  pTitle.textContent = it.proposal;
+  pMeta.textContent = `${it.media_form.join(', ')} | Time ${fmt(it.time_bias)} / Space ${fmt(it.space_bias)}`;
+  pBody.innerHTML = `
+    <p style="margin:.25rem 0 .5rem; color:var(--muted)"><em>${it.media_form.join(', ')}</em></p>
+    ${ state.showMetrics ? `
+    <section class="metrics">
+      ${METRICS.map(k=>`
+        <div class="metric">
+          <div class="lab"><span>${tc(k)}</span><span>${fmt(it[k])}</span></div>
+          <div class="barWrap"><div class="bar" style="width:${it[k]*100}%"></div></div>
+        </div>`).join('')}
+    </section>`: ''}
+    <details open><summary>Failure Modes</summary><ul>${it.failure_modes.map(x=>`<li>${x}</li>`).join('')}</ul></details>
+    <details open><summary>Stewardship Requirements</summary><ul>${it.stewardship_requirements.map(x=>`<li>${x}</li>`).join('')}</ul></details>
+  `;
+  ctr.textContent = `${(state.pIndex%items.length)+1} / ${items.length}`;
+}
+
+// -------------------- Events --------------------
+window.addEventListener('resize',()=>renderMap(state.filtered));
+dial.addEventListener('input', e=>{ state.dial = +e.target.value; updateDial(); });
+metricsToggle.addEventListener('change', e=>{ state.showMetrics = e.target.checked; metricsState.textContent = state.showMetrics? 'On':'Off'; render(); });
+q.addEventListener('input', e=>{ state.q = e.target.value; render(); });
+sortSel.addEventListener('change', e=>{ state.sortBy = e.target.value; render(); });
+dirSel.addEventListener('change', e=>{ state.sortDir = e.target.value; render(); });
+
+presentBtn.addEventListener('click', ()=>{ openPresentation(0); });
+printBtn.addEventListener('click', ()=>{ window.print(); });
+prev.addEventListener('click', ()=>{ state.pIndex = (state.pIndex-1+state.filtered.length)%state.filtered.length; drawSlide(); });
+next.addEventListener('click', ()=>{ state.pIndex = (state.pIndex+1)%state.filtered.length; drawSlide(); });
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closePresentation(); });
+document.addEventListener('keydown', e=>{
+  if(!overlay.classList.contains('active')) return;
+  if(e.key==='Escape') closePresentation();
+  if(e.key==='ArrowRight') { state.pIndex=(state.pIndex+1)%state.filtered.length; drawSlide(); }
+  if(e.key==='ArrowLeft') { state.pIndex=(state.pIndex-1+state.filtered.length)%state.filtered.length; drawSlide(); }
+});
+
+grid.addEventListener('click', e=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  const card = e.target.closest('.card'); const id = card?.dataset.id;
+  const idx = state.filtered.findIndex(it=>it.proposal.replace(/[^a-z0-9]+/gi,'-').toLowerCase()===id);
+  if(idx<0) return;
+  const it = state.filtered[idx];
+  const action = btn.dataset.action;
+  if(action==='present-one'){ openPresentation(idx); }
+  if(action==='copy-json'){
+    navigator.clipboard.writeText(JSON.stringify(it, null, 2));
+    btn.textContent='Copied'; setTimeout(()=>btn.textContent='Copy JSON',800);
+  }
+  if(action==='text-only'){
+    card.classList.add('textOnly');
+  }
+  if(action==='metrics-only'){
+    card.classList.remove('textOnly');
+  }
+});
+
+// -------------------- Init --------------------
+render();
+</script>
+</body>
+</html>

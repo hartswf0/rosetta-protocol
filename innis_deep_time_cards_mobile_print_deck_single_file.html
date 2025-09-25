@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Deep‑Time Folk Cards — Innis Batch</title>
+  <meta name="description" content="Mobile-first, print-ready, deck-mode card system for deep-time communication proposals (Harold Innis lens). Single-file HTML/CSS/JS."/>
+  <style>
+    /* ------------------
+       FOLK–MODERN DESIGN
+       ------------------ */
+    :root{
+      /* Deep-time palette (earthy + high contrast) */
+      --bg: #f9f7ef;            /* bone parchment */
+      --ink: #121212;           /* obsidian */
+      --ink-2:#2b2b2b;          /* basalt */
+      --accent:#0d6b3b;         /* juniper green */
+      --accent-2:#b2550b;       /* terracotta */
+      --gold:#ab8a00;           /* ochre */
+      --blue:#004c7f;           /* lapis */
+      --red:#8a1d00;            /* iron oxide */
+      --muted:#6b6b6b;
+
+      /* Card/surface variables to guarantee contrast in all modes */
+      --card-bg:#fffdf6;
+      --card-ink:#121212;
+      --chip-bg:#ffffff;
+      --bar-bg:#ffffff;
+      --surface-bg:#fffdf6;
+
+      /* Type scale (large / hyperlegible) */
+      --step--1: clamp(0.90rem, 0.80rem + 0.30vw, 1.00rem);
+      --step-0:  clamp(1.10rem, 1.00rem + 0.45vw, 1.30rem);
+      --step-1:  clamp(1.30rem, 1.15rem + 0.70vw, 1.70rem);
+      --step-2:  clamp(1.60rem, 1.35rem + 1.10vw, 2.20rem);
+      --step-3:  clamp(1.95rem, 1.60rem + 1.60vw, 2.90rem);
+      --step-4:  clamp(2.30rem, 1.90rem + 2.30vw, 3.70rem);
+      --radius-xl: 20px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --card-w: 680px; /* comfortable desktop max; mobile fills */
+      --shadow: 0 1px 0 rgba(0,0,0,.08), 0 6px 20px rgba(0,0,0,.06);
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0e0d0a; --ink:#f7f4e8; --ink-2:#f0ead4; --muted:#cfc9b5;
+        --accent:#7ed9a7; --accent-2:#ffb562; --gold:#f2d264; --blue:#9bd9ff; --red:#ff7b66;
+        /* Dark-mode card surfaces */
+        --card-bg:#151513;
+        --card-ink:#f7f4e8;
+        --chip-bg:#1e1e1b;
+        --bar-bg:#0b0b0a;
+        --surface-bg:#12120f;
+      }
+    }
+    }
+
+    /* Accessibility: respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+
+    html,body{height:100%;}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font: 400 var(--step-0) ui-serif, Charter, "Iowan Old Style", Palatino, Georgia, serif;
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    }
+
+    /* Header */
+    header{
+      position: sticky; top: 0; z-index: 10; background: linear-gradient(to bottom, rgba(249,247,239,.96), rgba(249,247,239,.88)), repeating-linear-gradient(45deg, transparent 0 12px, rgba(0,0,0,.02) 12px 24px);
+      border-bottom: 4px solid var(--ink);
+      padding: max(8px, env(safe-area-inset-top)) 12px 10px;
+    }
+    .title{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+    .brandmark{ width:42px; height:42px; border:3px solid var(--ink); border-radius: 50%; display:grid; place-items:center; font-weight:700; font-size: var(--step-0); }
+    .brandmark:before{ content:"⧉"; }
+    h1{ font-size: var(--step-2); line-height:1.05; margin:0; letter-spacing:.2px; }
+    .subtitle{ font-size: var(--step--1); color:var(--muted); margin: 2px 0 0 0; }
+
+    /* Controls */
+    .controls{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; align-items:center; }
+    .controls button, .controls select, .controls input[type="range"]{
+      font:600 var(--step--1) ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--ink); background:#fff0; border:2px solid var(--ink); border-radius: var(--radius-sm);
+      padding: 8px 10px; box-shadow: var(--shadow);
+    }
+    .controls label{ font-size: var(--step--1); }
+    .controls .rangewrap{ display:flex; align-items:center; gap:6px; }
+
+    /* Layout */
+    main{ padding: 14px; }
+    .grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+
+    /* Card */
+    .card{
+      max-width: var(--card-w);
+      border: 3px solid var(--card-ink);
+      border-radius: var(--radius-xl);
+      background: var(--card-bg);
+      color: var(--card-ink);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex; flex-direction:column;
+      position: relative;
+      print-color-adjust: exact; -webkit-print-color-adjust: exact;
+    }
+    .card .ribbon{ position:absolute; inset:auto 10px 10px auto; padding:3px 8px; border:2px solid var(--ink); border-radius: 999px; background: var(--gold); font:700 var(--step--1) ui-sans-serif, system-ui; }
+
+    .card header{ position: relative; border:0; background: none; padding: 14px 14px 8px; }
+    .card h2{ font-size: var(--step-1); margin:.1rem 0 .3rem; line-height:1.1; }
+    .media-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+    .chip{ border:2px solid var(--card-ink); padding: 4px 7px; border-radius: 999px; font:600 var(--step--1) ui-sans-serif, system-ui; background: var(--chip-bg); color: var(--card-ink); }
+
+    .meta{ display:grid; grid-template-columns: 1fr; gap:10px; padding: 0 14px 12px; }
+
+    .meter{ display:grid; grid-template-columns: 110px 1fr 46px; gap:8px; align-items:center; }
+    .meter .name{ font:600 var(--step--1) ui-sans-serif, system-ui; }
+    .bar{ height: 12px; border:2px solid var(--card-ink); border-radius: 999px; overflow: clip; background: var(--bar-bg); }
+    .bar > i{ display:block; height:100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; }
+    .pct{ font:700 var(--step--1) ui-sans-serif, system-ui; text-align:right; color: var(--card-ink); }
+
+    .body{ padding: 10px 14px 16px; display:grid; gap:10px; }
+    .section-title{ font:700 var(--step--1) ui-sans-serif, system-ui; text-transform:uppercase; letter-spacing:.06em; color:var(--blue); }
+    ul{ margin:.2rem 0; padding-left: 1.2rem; }
+    li{ margin:.14rem 0; }
+
+    /* Ornament / Folk art borders */
+    .ornament{ height: 6px; background-image: repeating-linear-gradient(90deg, var(--card-ink) 0 12px, transparent 12px 18px), repeating-linear-gradient(180deg, transparent 0 2px, var(--card-ink) 2px 4px); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; padding: 2px 0; border-top:2px solid var(--card-ink); border-bottom:2px solid var(--card-ink); }
+
+    /* Deck mode (presentation) */
+    .deck{ position: fixed; inset: 0; background: var(--bg); display:none; align-items:center; justify-content:center; padding: 16px; }
+    .deck.active{ display:flex; }
+    .deck .card{ width:min(96vw, var(--card-w)); height: auto; }
+    .deck .nav{ position: fixed; inset:auto 0 16px 0; display:flex; gap:8px; justify-content:center; }
+    .deck button{ font:700 var(--step-0) ui-sans-serif, system-ui; border:3px solid var(--ink); background: #fff; padding: 10px 14px; border-radius: 999px; box-shadow: var(--shadow); }
+
+    /* Compare table */
+    details.compare{ margin: 10px 0 20px; border:2px dashed var(--ink); border-radius: var(--radius-lg); padding: 8px; background: var(--surface-bg); }
+    details.compare summary{ cursor: pointer; font:700 var(--step--1) ui-sans-serif, system-ui; }
+    .table{ overflow:auto; }
+    table{ border-collapse: collapse; width:100%; font-size: var(--step--1); }
+    th, td{ border:2px solid var(--ink); padding: 8px; text-align:left; color: var(--ink); background: transparent; }
+    th{ background: color-mix(in srgb, var(--gold) 80%, transparent); position: sticky; top:0; color: #000; }
+
+    /* Print */
+    @page { size: A4 portrait; margin: 16mm; }
+    @media print{
+      header, .controls, details.compare{ display:none !important; }
+      body{ background:white; color:black; }
+      .grid{ grid-template-columns: 1fr 1fr; gap: 10mm; }
+      .card{ break-inside: avoid; box-shadow: none; background: white; }
+      .ornament{ background: black; }
+    }
+
+    /* High-contrast toggle */
+    .hc body, .hc{ filter: contrast(1.15) saturate(1.1); }
+
+    /* Tiny badge legend */
+    .legend{ display:flex; gap:8px; flex-wrap:wrap; font:600 var(--step--1) ui-sans-serif, system-ui; color:var(--muted); }
+    .legend .sw{ width:14px; height:10px; border:2px solid var(--ink); border-radius:5px; display:inline-block; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+
+    /* Footer */
+    footer{ text-align:center; padding: 30px 10px; color: var(--muted); font-size: var(--step--1); }
+  </style>
+</head>
+<body>
+  <header aria-label="App header">
+    <div class="title" role="banner">
+      <div class="brandmark" aria-hidden="true"></div>
+      <div>
+        <h1>Deep‑Time Folk Cards</h1>
+        <p class="subtitle">Hyperlegible, mobile‑first cards for 100,000‑year communication problems (Innis lens)</p>
+      </div>
+    </div>
+    <div class="controls" role="toolbar" aria-label="Display controls">
+      <button id="deckBtn" title="Presentation / deck mode (⌘/Ctrl + Enter)">Deck Mode</button>
+      <button id="printBtn" title="Print / Save to PDF">Print</button>
+      <button id="contrastBtn" aria-pressed="false" title="High contrast toggle">High Contrast</button>
+      <div class="rangewrap" title="Text size">
+        <label for="size">Text</label>
+        <input id="size" type="range" min="-2" max="2" step="1" value="0" />
+      </div>
+      <select id="sortSel" title="Sort cards">
+        <option value="none">Sort: Original</option>
+        <option value="legibility">Sort: Legibility (desc)</option>
+        <option value="persistence">Sort: Persistence (desc)</option>
+        <option value="equity">Sort: Equity (desc)</option>
+        <option value="risk">Sort: Appropriation Risk (asc)</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <details class="compare">
+      <summary>Compare view (data‑dense table)</summary>
+      <div id="compare" class="table" aria-live="polite"></div>
+      <div class="legend"><span class="sw"></span> Metric bars use juniper→terracotta gradient. Values are 0–1.</div>
+    </details>
+
+    <section class="grid" id="grid" aria-live="polite"></section>
+  </main>
+
+  <div class="deck" id="deck" aria-hidden="true">
+    <div class="deck-card" id="deckCard"></div>
+    <div class="nav" aria-label="Deck navigation">
+      <button id="prev">◀︎ Prev (←)</button>
+      <button id="next">Next (→) ▶︎</button>
+      <button id="closeDeck">Close (Esc)</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>Design heuristics: folk borders, AAA contrast, big type, no external assets, printable, swipe/keys, resilient semantics.</p>
+  </footer>
+
+  <!-- Embedded DATA: replace/extend freely -->
+  <script id="innis-data" type="application/json">{
+"innis_batch": [
+{
+"innis_plot": {
+"proposal": "Volcano Warning Folktale",
+"media_form": ["oral tradition", "legend", "narrative shell"],
+"time_bias": 0.90,
+"space_bias": 0.40,
+"persistence": 0.80,
+"legibility_millennia": 0.75,
+"appropriation_risk": 0.50,
+"maintenance_load": 0.15,
+"monopoly_of_knowledge": 0.10,
+"equity_alignment": 0.90,
+"failure_modes": [
+"narrative 'sweetness' (love story) decouples from the warning",
+"transmission chain is broken by cultural disruption",
+"warning is dismissed as myth by descendants after long dormancy"
+],
+"stewardship_requirements": [
+"embed warning inside a compelling, emotionally resonant story (forbidden love, tragedy)",
+"ensure the narrative is pleasurable to tell and retell",
+"pass down through at least three generations to root the information in cultural memory"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Tomb Hazard Legends",
+"media_form": ["rumor", "historical account", "folklore", "superstition"],
+"time_bias": 0.85,
+"space_bias": 0.50,
+"persistence": 0.70,
+"legibility_millennia": 0.60,
+"appropriation_risk": 0.70,
+"maintenance_load": 0.10,
+"monopoly_of_knowledge": 0.20,
+"equity_alignment": 0.80,
+"failure_modes": [
+"promise of treasure outweighs the perceived threat ('greedy grave robbers')",
+"the physical hazard (e.g., mercury) is neutralized or removed",
+"the story is dismissed as an 'ineffectual curse' without verifiable danger"
+],
+"stewardship_requirements": [
+"link the legend to a real, verifiable, and persistent physical hazard",
+"intentionally 'lose' the precise location to enhance myth and deter casual searching",
+"propagate stories that emphasize poison and sickness over treasure"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "The Atomic Priesthood",
+"media_form": ["artificially created ritual", "commissioned legend", "custodian order"],
+"time_bias": 0.95,
+"space_bias": 0.10,
+"persistence": 0.65,
+"legibility_millennia": 0.50,
+"appropriation_risk": 0.85,
+"maintenance_load": 0.90,
+"monopoly_of_knowledge": 0.95,
+"equity_alignment": 0.05,
+"failure_modes": [
+"priesthood dies out, has a schism, or becomes corrupt",
+"ritual meaning inverts, attracting people instead of repelling them",
+"the uninitiated population dismisses the priesthood's warnings as arcane"
+],
+"stewardship_requirements": [
+"establish a self-perpetuating commission of experts ('priesthood')",
+"entrust the 'actual truth' exclusively to the commission",
+"create and nurture a surrounding folklore that shuns the area through superstition, retold year by year"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Memetic Mutation ('Glass Slipper')",
+"media_form": ["narrative element", "trope", "homonymic shift"],
+"time_bias": 0.80,
+"space_bias": 0.85,
+"persistence": 0.75,
+"legibility_millennia": 0.70,
+"appropriation_risk": 0.30,
+"maintenance_load": 0.0,
+"monopoly_of_knowledge": 0.05,
+"equity_alignment": 0.95,
+"failure_modes": [
+"a more compelling mutation arises in a competing story",
+"the cultural context that makes the element memorable disappears",
+"the story's core is changed so much the element no longer fits"
+],
+"stewardship_requirements": [
+"cannot be actively stewarded; relies on emergent properties",
+"craft elements that are 'gloriously unlikely' and 'stick in the memory'",
+"allow for organic, decentralized retelling and adaptation"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Resilient Physical Media ('Books are Sharks')",
+"media_form": ["bound codex", "printed book", "durable physical object"],
+"time_bias": 0.60,
+"space_bias": 0.65,
+"persistence": 0.80,
+"legibility_millennia": 0.20,
+"appropriation_risk": 0.15,
+"maintenance_load": 0.40,
+"monopoly_of_knowledge": 0.50,
+"equity_alignment": 0.50,
+"failure_modes": [
+"material decay (paper rot, ink fading)",
+"language becomes obsolete and untranslatable",
+"catastrophic destruction (fire, flood)",
+"culture loses literacy or interest in the form"
+],
+"stewardship_requirements": [
+"utilize robust, well-evolved technology ('nothing is better at being a shark than a shark')",
+"store in libraries and archives protected from environmental threats",
+"maintain a culture of literacy and preservation"
+]
+}
+}
+]
+}</script>
+
+  <script>
+  // Utilities
+  const $ = (sel, ctx=document) => ctx.querySelector(sel);
+  const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
+
+  const state = {
+    data: null,
+    deckIndex: 0,
+    sort: 'none',
+    sizeStep: 0,
+  };
+
+  function loadData(){
+    try{
+      state.data = JSON.parse(document.getElementById('innis-data').textContent).innis_batch.map(x=>x.innis_plot);
+    }catch(e){ console.error('Data parse error', e); state.data = []; }
+  }
+
+  function scoreTimeless(d){
+    // Simple deep-time heuristic toward hyperlegibility and social persistence
+    const w = { leg: 0.35, time: 0.25, pers:0.25, equity:0.10, lowMonopoly:0.05 };
+    const val = d.legibility_millennia*w.leg + d.time_bias*w.time + d.persistence*w.pers + d.equity_alignment*w.equity + (1 - d.monopoly_of_knowledge)*w.lowMonopoly;
+    return Math.round(val*100);
+  }
+
+  function meterRow(name, value){
+    const pct = Math.round(value*100);
+    return `
+      <div class="meter" role="group" aria-label="${name}">
+        <div class="name">${name}</div>
+        <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+        <div class="pct" aria-label="${name} ${pct} percent">${pct}%</div>
+      </div>`;
+  }
+
+  function chip(txt){ return `<span class="chip">${txt}</span>` }
+
+  function card(d, i){
+    const timeless = scoreTimeless(d);
+    return `
+    <article class="card" data-idx="${i}" tabindex="0" aria-label="${d.proposal}">
+      <span class="ribbon" title="Deep-time heuristic score">${timeless} / 100</span>
+      <header>
+        <h2>${d.proposal}</h2>
+        <div class="media-chips" aria-label="Media forms">${d.media_form.map(chip).join('')}</div>
+      </header>
+      <div class="ornament" aria-hidden="true"></div>
+      <div class="meta">
+        ${meterRow('Legibility (millennia)', d.legibility_millennia)}
+        ${meterRow('Time Bias', d.time_bias)}
+        ${meterRow('Space Bias', d.space_bias)}
+        ${meterRow('Persistence', d.persistence)}
+        ${meterRow('Equity Alignment', d.equity_alignment)}
+        ${meterRow('Appropriation Risk', 1 - d.appropriation_risk)}
+        ${meterRow('Maintenance Load', 1 - d.maintenance_load)}
+        ${meterRow('Monopoly of Knowledge', 1 - d.monopoly_of_knowledge)}
+      </div>
+      <div class="body">
+        <div>
+          <div class="section-title">Failure Modes</div>
+          <ul>${d.failure_modes.map(x=>`<li>${x}</li>`).join('')}</ul>
+        </div>
+        <div>
+          <div class="section-title">Stewardship</div>
+          <ul>${d.stewardship_requirements.map(x=>`<li>${x}</li>`).join('')}</ul>
+        </div>
+      </div>
+    </article>`
+  }
+
+  function renderGrid(){
+    const grid = document.getElementById('grid');
+    let arr = [...state.data];
+    switch(state.sort){
+      case 'legibility': arr.sort((a,b)=> b.legibility_millennia - a.legibility_millennia); break;
+      case 'persistence': arr.sort((a,b)=> b.persistence - a.persistence); break;
+      case 'equity': arr.sort((a,b)=> b.equity_alignment - a.equity_alignment); break;
+      case 'risk': arr.sort((a,b)=> a.appropriation_risk - b.appropriation_risk); break;
+    }
+    grid.innerHTML = arr.map((d,i)=>card(d,i)).join('');
+    // click to open deck at that card
+    $$('.card').forEach((el)=>{
+      el.addEventListener('click', ()=>openDeck(indexFromProposal(el.querySelector('h2').textContent)));
+      el.addEventListener('keypress', (e)=>{ if(e.key==='Enter' || e.key===' '){ openDeck(indexFromProposal(el.querySelector('h2').textContent)); }});
+    });
+  }
+
+  function indexFromProposal(title){
+    return state.data.findIndex(x=>x.proposal===title);
+  }
+
+  function renderCompare(){
+    const cols = [
+      ['Proposal', d=>d.proposal],
+      ['Legibility', d=>d.legibility_millennia],
+      ['Time', d=>d.time_bias],
+      ['Space', d=>d.space_bias],
+      ['Persistence', d=>d.persistence],
+      ['Equity', d=>d.equity_alignment],
+      ['AppropriationRisk (low=good)', d=>1-d.appropriation_risk],
+      ['Maint.(low=good)', d=>1-d.maintenance_load],
+      ['Monopoly (low=good)', d=>1-d.monopoly_of_knowledge],
+      ['Deep‑Time Score', d=>scoreTimeless(d)/100]
+    ];
+    const header = `<tr>${cols.map(([h])=>`<th scope="col">${h}</th>`).join('')}</tr>`;
+    const rows = state.data.map(d=>`<tr>${cols.map(([_,fn],i)=>{
+      const val = fn(d);
+      if(i===0) return `<th scope="row">${val}</th>`;
+      const pct = Math.round((typeof val==='number'? val: 0)*100);
+      return `<td><div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div> <span class="pct">${pct}%</span></td>`;
+    }).join('')}</tr>`).join('');
+    document.getElementById('compare').innerHTML = `<table>${header}${rows}</table>`;
+  }
+
+  // Deck Mode -------------------------------------------------------------
+  function openDeck(idx=0){
+    state.deckIndex = Math.max(0, Math.min(idx, state.data.length-1));
+    const deck = $('#deck');
+    const d = state.data[state.deckIndex];
+    $('#deckCard').innerHTML = card(d, state.deckIndex);
+    deck.classList.add('active');
+    deck.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+  }
+  function closeDeck(){
+    $('#deck').classList.remove('active');
+    $('#deck').setAttribute('aria-hidden','true');
+    document.body.style.overflow='auto';
+  }
+  function next(){ openDeck(Math.min(state.deckIndex+1, state.data.length-1)); }
+  function prev(){ openDeck(Math.max(state.deckIndex-1, 0)); }
+
+  // Controls --------------------------------------------------------------
+  function bindControls(){
+    $('#deckBtn').addEventListener('click', ()=>openDeck(0));
+    $('#printBtn').addEventListener('click', ()=>window.print());
+    $('#contrastBtn').addEventListener('click', (e)=>{
+      document.documentElement.classList.toggle('hc');
+      const on = document.documentElement.classList.contains('hc');
+      e.currentTarget.setAttribute('aria-pressed', on? 'true':'false');
+      localStorage.setItem('hc', on? '1':'0');
+    });
+    $('#size').addEventListener('input', (e)=>{
+      const step = parseInt(e.target.value,10);
+      document.documentElement.style.setProperty('--step-0', `calc(1rem + ${step*2}%)`);
+      localStorage.setItem('txtstep', step);
+    });
+    $('#sortSel').addEventListener('change', (e)=>{ state.sort = e.target.value; renderGrid(); });
+
+    // Deck nav
+    $('#next').addEventListener('click', next);
+    $('#prev').addEventListener('click', prev);
+    $('#closeDeck').addEventListener('click', closeDeck);
+
+    // Keyboard
+    document.addEventListener('keydown', (e)=>{
+      if($('#deck').classList.contains('active')){
+        if(e.key==='ArrowRight') next();
+        else if(e.key==='ArrowLeft') prev();
+        else if(e.key==='Escape') closeDeck();
+      } else {
+        if((e.metaKey||e.ctrlKey) && e.key==='Enter') openDeck(0);
+      }
+    });
+
+    // Touch swipe for deck
+    let touchStartX=null;
+    $('#deck').addEventListener('touchstart', (e)=>{ touchStartX = e.changedTouches[0].screenX; }, {passive:true});
+    $('#deck').addEventListener('touchend', (e)=>{
+      if(touchStartX==null) return;
+      const dx = e.changedTouches[0].screenX - touchStartX;
+      if(Math.abs(dx)>50){ dx<0 ? next() : prev(); }
+      touchStartX=null;
+    }, {passive:true});
+  }
+
+  function loadPrefs(){
+    if(localStorage.getItem('hc')==='1') document.documentElement.classList.add('hc');
+    const t = localStorage.getItem('txtstep');
+    if(t){ $('#size').value = t; document.documentElement.style.setProperty('--step-0', `calc(1rem + ${parseInt(t,10)*2}%)`); }
+  }
+
+  // Init
+  loadData();
+  bindControls();
+  loadPrefs();
+  renderGrid();
+  renderCompare();
+  </script>
+</body>
+</html>

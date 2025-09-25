@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Rosetta Protocol — Index</title>
+  <meta name="description" content="Mobile-first index and strong viewer for Rosetta Protocol HTML documents." />
+  <style>
+    :root {
+      --parchment: #F7F3EC;
+      --granite: #5A5A5A;
+      --maple: #C32F27;
+      --orbital: #2B4D82;
+      --safety: #FFD447;
+      --duct: #9AA0A6;
+      --basalt: #0f0f11;
+      --basalt-2: #0b0b0c;
+      --ink: rgba(247,243,236,0.92);
+      --ink-dim: rgba(247,243,236,0.75);
+      --line: rgba(154,160,166,0.35);
+      --line-strong: rgba(154,160,166,0.6);
+      --shadow: 0 0 0 1px rgba(154,160,166,0.15), 0 10px 30px rgba(0,0,0,0.55);
+      --radius: 12px;
+      --pad: 12px;
+      --head-h: 64px;
+      --toolbar-h: 48px;
+      --ring: 0 0 0 1.5px var(--safety), 0 0 0 6px rgba(255,212,71,0.15);
+    }
+
+    /* Themes */
+    html[data-theme="steel"] {
+      --basalt: #0b0c10;
+      --basalt-2: #0a0b0e;
+      --orbital: #375a9e;
+      --duct: #a7adb4;
+      --line: rgba(167,173,180,0.35);
+      --line-strong: rgba(167,173,180,0.6);
+      --ink: rgba(241,244,248,0.92);
+      --ink-dim: rgba(241,244,248,0.72);
+    }
+    html[data-theme="parchment"] {
+      --basalt: #f6f3ed;
+      --basalt-2: #ebe7df;
+      --ink: #222;
+      --ink-dim: #444;
+      --line: rgba(0,0,0,0.2);
+      --line-strong: rgba(0,0,0,0.35);
+      --shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      :root { --t: 180ms cubic-bezier(.2,.8,.2,1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      :root { --t: 0ms linear; }
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1200px 800px at 20% 0%, #131316 0%, var(--basalt) 40%, var(--basalt-2) 100%);
+      color: var(--ink);
+      font: 15px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Engraved serif headings */
+    h1, h2, h3 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "URW Palladio L", serif; letter-spacing: 0.02em; }
+    .engraved {
+      color: var(--parchment);
+      text-shadow: 0 1px 0 #000, 0 -1px 0 rgba(255,255,255,0.05), 0 0 24px rgba(43,77,130,0.15);
+    }
+
+    /* Corner markers motif */
+    .markers::before, .markers::after { content: ""; position: absolute; width: 14px; height: 14px; border-color: var(--duct); opacity: .5; }
+    .markers::before { left: -6px; top: -6px; border-left: 2px solid; border-top: 2px solid; }
+    .markers::after { right: -6px; bottom: -6px; border-right: 2px solid; border-bottom: 2px solid; }
+
+    /* Sticky header */
+    header[role="banner"] {
+      position: sticky; top: 0; z-index: 50; height: 56px;
+      display: grid; grid-template-columns: auto 1fr; align-items: center;
+      padding: 6px 10px; gap: 10px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.75), rgba(0,0,0,0.35) 70%, rgba(0,0,0,0));
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px; min-width: 0;
+    }
+    .patch {
+      width: 34px; height: 34px; border-radius: 999px; flex: 0 0 auto;
+      background: radial-gradient(circle at 30% 30%, var(--safety) 0 15%, transparent 15%),
+                  radial-gradient(circle at 70% 60%, var(--maple) 0 20%, transparent 20%),
+                  radial-gradient(circle at 50% 50%, rgba(43,77,130,0.35) 0 70%, transparent 70%),
+                  conic-gradient(from 0deg, rgba(255,255,255,0.15), rgba(0,0,0,0.1));
+      box-shadow: inset 0 0 0 1.5px var(--granite), inset 0 0 24px rgba(255,212,71,0.15), 0 2px 8px rgba(0,0,0,0.4);
+      position: relative;
+    }
+    .titles { min-width: 0; display:flex; flex-direction:column; }
+    .titles h1 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing:.04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .titles p { margin: 0; color: var(--ink-dim); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .controls { display: flex; gap: 8px; align-items: center; overflow-x:auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+    .controls::-webkit-scrollbar { display:none; }
+    button, .btn {
+      appearance: none; border: 1px dashed var(--duct); color: var(--parchment);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.4));
+      padding: 8px 10px; border-radius: 8px; cursor: pointer; font: inherit; line-height: 1;
+      transition: transform var(--t), background var(--t), border-color var(--t), box-shadow var(--t);
+    }
+    button:hover, .btn:hover { border-style: solid; border-color: var(--safety); box-shadow: var(--ring); }
+    button:active, .btn:active { transform: translateY(1px); }
+    button[aria-pressed="true"] { background: rgba(43,77,130,0.25); border-color: var(--orbital); }
+
+    /* Narrow-screen header collapse */
+    @media (max-width: 768px) {
+      .controls .icon:not(#btnMenu) { display: none !important; }
+      #btnMenu { display: inline-block; }
+      .titles h1 { font-size: 14px; }
+      .titles p { font-size: 10px; }
+    }
+    @media (max-width: 360px) {
+      .titles p { display:none; }
+    }
+    @media (min-width: 769px) { #btnMenu { display:none; } }
+
+    main[role="main"] { padding: 12px; }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 520px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 860px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .card { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line-strong); box-shadow: var(--shadow); background: rgba(10,10,12,0.6); }
+    .card .top {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 8px 10px; border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.35));
+    }
+    .domain { font-weight: 600; font-size: 12px; letter-spacing: .03em; color: var(--safety); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .actions { display: flex; gap: 6px; }
+    .actions .icon { font-size: 12px; padding: 6px 8px; border-radius: 6px; }
+    .actions .danger { border-color: var(--maple); color: var(--maple); }
+
+    .thumb { position: relative; width: 100%; aspect-ratio: 16 / 10; background: linear-gradient(180deg, #0c0d10, #0b0b0c); }
+    .thumb iframe { width: 100%; height: 100%; border: 0; background: #111; }
+    .thumb .status { position: absolute; left: 8px; bottom: 8px; font-size: 11px; color: var(--duct); background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 6px; border: 1px dashed var(--duct); }
+
+    /* Prompt drawer */
+    .drawer, .modal { position: fixed; inset: 0; display: none; }
+    .drawer[aria-hidden="false"], .modal[aria-hidden="false"], .viewer[aria-hidden="false"] { display: grid; }
+
+    .drawer { grid-template-columns: 1fr; z-index: 80; }
+    .drawer .backdrop { grid-area: 1 / 1; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+    .drawer .panel {
+      grid-area: 1 / 1; margin-left: auto; width: min(640px, 92vw); height: 100%; background: #111214;
+      border-left: 1px solid var(--line-strong); box-shadow: var(--shadow); padding: 16px; overflow: auto; position: relative;
+    }
+    .drawer h2 { margin: 0 0 6px; font-size: 16px; }
+    .drawer pre { white-space: pre-wrap; background: #0b0c0f; border: 1px dashed var(--duct); padding: 12px; border-radius: 10px; color: var(--parchment); }
+
+    /* Add URLs modal */
+    .modal { place-items: center; z-index: 90; }
+    .modal .sheet { width: min(720px, 92vw); max-height: 86vh; background: #121316; border: 1px solid var(--line-strong); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; display: grid; gap: 10px; }
+    .modal label { font-weight: 600; font-size: 13px; color: var(--safety); }
+    textarea { width: 100%; min-height: 200px; resize: vertical; background: #0b0c0f; color: var(--parchment); border: 1px dashed var(--duct); border-radius: 10px; padding: 10px; font: inherit; }
+
+    /* Strong viewer */
+    .viewer { z-index: 100; grid-template-rows: auto 1fr; background: rgba(0,0,0,0.92); }
+    .viewer .toolbar {
+      height: var(--toolbar-h); display: flex; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.6));
+    }
+    .viewer .toolbar .spacer { flex: 1; }
+    .viewer .toolbar .index { font-size: 12px; color: var(--ink-dim); }
+    .viewer .stage { position: relative; }
+    .viewer iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #0b0b0c; }
+
+    .hidden-chrome header,
+    .hidden-chrome .viewer .toolbar { display: none !important; }
+
+    /* Engraved borders */
+    .engrave-box { border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.45); }
+
+    /* Focus styles */
+    :focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--safety) !important; }
+
+    /* Print */
+    @media print {
+      header, .controls, .drawer, .modal, .viewer { display: none !important; }
+      body { background: #fff; color: #000; }
+      .card { border: 1px solid #000; box-shadow: none; }
+    }
+
+    /* Preview maximize */
+    #pSheet.max { width: 98vw !important; height: 92vh !important; }
+  </style>
+</head>
+<body>
+  <header role="banner" class="engrave-box">
+    <div class="brand">
+      <div class="patch" aria-hidden="true"></div>
+      <div class="titles">
+        <h1 class="engraved">Rosetta Protocol</h1>
+        <p>Terminal Index</p>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="btnMenu" class="icon" aria-haspopup="true" aria-expanded="false" title="Open menu">≡ Menu</button>
+      <button id="btnPrompt" class="icon" aria-haspopup="true" aria-expanded="false" title="Show Brand Command Prompt">Prompt</button>
+      <button id="btnPlaylists" class="icon" aria-haspopup="true" aria-expanded="false" title="Manage playlists">Playlists</button>
+      <button id="btnAdd" class="icon" aria-haspopup="true" aria-expanded="false" title="Add URLs to index">Add URLs</button>
+      <button id="btnFullscreen" class="icon" title="Toggle Fullscreen" aria-pressed="false">⤢ Full</button>
+      <button id="btnClear" class="icon" title="Clear all saved URLs">Clear</button>
+      <button id="btnOpenViewer" class="icon" title="Open fullscreen viewer">Open Viewer</button>
+    </div>
+  </header>
+
+  <main role="main">
+    <section aria-label="Index Grid" class="grid" id="grid"></section>
+  </main>
+
+  <!-- Prompt Drawer -->
+  <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Brand Prompt Drawer" role="dialog">
+    <div class="backdrop" data-close="drawer" tabindex="-1" aria-hidden="true"></div>
+    <div class="panel markers">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;">
+        <h2 class="engraved">Brand Command: Rosetta Stone × Terminal</h2>
+        <button class="icon" data-close="drawer" aria-label="Close">Close</button>
+      </div>
+      <pre id="brandPrompt"></pre>
+    </div>
+  </aside>
+
+  <!-- Preview Modal -->
+  <div id="preview" class="modal" aria-hidden="true" role="dialog" aria-label="Preview">
+    <div class="backdrop" data-close="preview"></div>
+    <div class="sheet markers" id="pSheet" style="width:min(1100px,96vw); height:min(82vh, 900px); display:grid; grid-template-rows:auto 1fr;">
+      <div class="engrave-box" style="display:flex; align-items:center; gap:8px; padding:8px;">
+        <button id="pView" title="Open in strong viewer">View</button>
+        <button id="pAdd" title="Add to active playlist">＋</button>
+        <a id="pOpen" class="btn" target="_blank" rel="noopener noreferrer" title="Open in new tab">Open ↗</a>
+        <div style="flex:1"></div>
+        <button id="pMax" title="Maximize / Restore">⤢</button>
+        <button data-close="preview" title="Close">Close</button>
+      </div>
+      <iframe id="pFrame" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" style="width:100%; height:100%; border:0; background:#0b0b0c;"></iframe>
+    </div>
+  </div>
+
+  <!-- Header Menu (narrow screens) -->
+  <div id="menu" class="modal" aria-hidden="true" role="dialog" aria-label="Menu">
+    <div class="backdrop" data-close="menu"></div>
+    <div class="sheet markers" style="width:min(420px,92vw);">
+      <h2 class="engraved" style="margin:4px 0 8px; font-size:16px;">Menu</h2>
+      <div style="display:grid; gap:8px;">
+        <button data-menu="prompt">Brand Prompt</button>
+        <button data-menu="playlists">Playlists</button>
+        <button data-menu="add">Add URLs</button>
+        <button data-menu="theme">Theme: <span id="themeName">basalt</span></button>
+        <button data-menu="fullscreen">Toggle Fullscreen</button>
+        <button data-menu="open">Open Viewer</button>
+        <button data-menu="clear" class="danger">Clear All</button>
+        <button data-close="menu">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Playlists Drawer -->
+  <aside id="plist" class="drawer" aria-hidden="true" aria-label="Playlists" role="dialog">
+    <div class="backdrop" data-close="plist" tabindex="-1" aria-hidden="true"></div>
+    <div class="panel markers">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;">
+        <h2 class="engraved">Playlists</h2>
+        <button class="icon" data-close="plist" aria-label="Close">Close</button>
+      </div>
+      <div style="display:grid; gap:10px;">
+        <div>
+          <label for="plistName" style="color:var(--safety); font-weight:600; font-size:12px;">New Playlist</label>
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <input id="plistName" placeholder="Name" style="flex:1; background:#0b0c0f; color:var(--parchment); border:1px dashed var(--duct); border-radius:8px; padding:8px; font:inherit;" />
+            <button id="plistCreate">Create</button>
+          </div>
+        </div>
+        <div>
+          <label for="plistSelect" style="color:var(--safety); font-weight:600; font-size:12px;">Active Playlist</label>
+          <div style="display:flex; gap:8px; margin-top:4px; align-items:center;">
+            <select id="plistSelect" style="flex:1; background:#0b0c0f; color:var(--parchment); border:1px dashed var(--duct); border-radius:8px; padding:8px; font:inherit;"></select>
+            <button id="plistUse" title="Use selected playlist in viewer">Use</button>
+            <button id="plistDelete" class="danger" title="Delete selected playlist">✕</button>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; gap:8px; margin:4px 0 8px;">
+            <button id="plistFromIndex" title="Create from current index list">Create from Index</button>
+            <button id="plistClearItems" class="danger" title="Clear items in active playlist">Clear Items</button>
+          </div>
+          <div id="plistItems" class="engrave-box" style="min-height:120px; border-radius:10px; padding:8px;">
+            <!-- Items injected here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Add URLs Modal -->
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-label="Add URLs">
+    <div class="backdrop" data-close="modal"></div>
+    <div class="sheet markers">
+      <label for="urls">Paste URLs (one per line). Relative paths allowed. Saved to localStorage as rosetta_iframes_v1.</label>
+      <textarea id="urls" placeholder="https://example.com/page.html\nrelative/path/to/file.html"></textarea>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button data-close="modal">Cancel</button>
+        <button id="saveUrls" class="btn" style="border-color: var(--orbital); color: var(--safety)">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strong Viewer -->
+  <div id="viewer" class="viewer" aria-hidden="true" role="dialog" aria-label="Strong Viewer" data-index="-1">
+    <div class="toolbar engrave-box">
+      <button id="vPrev" title="Previous (←)">Prev</button>
+      <button id="vNext" title="Next (→)">Next</button>
+      <button id="vReload" title="Reload">Reload</button>
+      <div class="spacer"></div>
+      <div class="index" id="vIndex">0 / 0</div>
+      <a id="vOpen" class="btn" target="_blank" rel="noopener noreferrer" title="Open in new tab">Open ↗</a>
+      <button id="vClose" title="Close (Esc)">Close</button>
+    </div>
+    <div class="stage" id="stage" aria-live="polite">
+      <iframe id="vFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-modals" referrerpolicy="no-referrer"></iframe>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    'use strict';
+
+    const KEY = 'rosetta_iframes_v1';
+    const KEY_IDX = 'rosetta_iframes_current';
+    const PKEY = 'rosetta_playlists_v1';
+    const THEME_KEY = 'rosetta_theme_v1';
+
+    const els = {
+      grid: document.getElementById('grid'),
+      btnPrompt: document.getElementById('btnPrompt'),
+      btnAdd: document.getElementById('btnAdd'),
+      btnClear: document.getElementById('btnClear'),
+      btnOpenViewer: document.getElementById('btnOpenViewer'),
+      drawer: document.getElementById('drawer'),
+      plist: document.getElementById('plist'),
+      menu: document.getElementById('menu'),
+      preview: document.getElementById('preview'),
+      modal: document.getElementById('modal'),
+      textarea: document.getElementById('urls'),
+      saveUrls: document.getElementById('saveUrls'),
+      viewer: document.getElementById('viewer'),
+      vPrev: document.getElementById('vPrev'),
+      vNext: document.getElementById('vNext'),
+      vReload: document.getElementById('vReload'),
+      vOpen: document.getElementById('vOpen'),
+      vClose: document.getElementById('vClose'),
+      vIndex: document.getElementById('vIndex'),
+      vFrame: document.getElementById('vFrame'),
+      brandPrompt: document.getElementById('brandPrompt'),
+      header: document.querySelector('header'),
+      stage: document.getElementById('stage'),
+      btnPlaylists: document.getElementById('btnPlaylists'),
+      btnMenu: document.getElementById('btnMenu'),
+      btnFullscreen: document.getElementById('btnFullscreen'),
+      plistName: document.getElementById('plistName'),
+      plistCreate: document.getElementById('plistCreate'),
+      plistSelect: document.getElementById('plistSelect'),
+      plistUse: document.getElementById('plistUse'),
+      plistDelete: document.getElementById('plistDelete'),
+      plistFromIndex: document.getElementById('plistFromIndex'),
+      plistClearItems: document.getElementById('plistClearItems'),
+      plistItems: document.getElementById('plistItems'),
+      pFrame: document.getElementById('pFrame'),
+      pView: document.getElementById('pView'),
+      pAdd: document.getElementById('pAdd'),
+      pOpen: document.getElementById('pOpen'),
+      pMax: document.getElementById('pMax'),
+      pSheet: document.getElementById('pSheet'),
+      themeName: document.getElementById('themeName'),
+    };
+
+    const BRAND_TEXT = `You are generating a single-file, mobile-first HTML/CSS/JS index page for the “Sharpen & Hone — Rosetta Protocol” brand.
+
+AESTHETIC (must):
+- Rosetta Stone × Terminal. Black basalt background, light ink, engraved serif headers, monospace body.
+- Palette: parchment (#F7F3EC), granite gray (#5A5A5A), maple red (#C32F27), orbital blue (#2B4D82), safety yellow (#FFD447), duct-tape gray (#9AA0A6).
+- Motifs: engraved borders, dashed tape outlines, mission patch circle, corner markers.
+- Less is more: no sliders. Buttons + iframes only.
+
+ACCESSIBILITY & PERF (must):
+- Mobile-first, responsive, high contrast, ARIA roles, keyboard nav (Esc closes viewer; ←/→ prev/next), reduced-motion respect.
+- Single file; no external libraries. Print-friendly. Persist URLs in localStorage.
+
+CORE STRUCTURE:
+1) Sticky Header: Title + Subtitle; buttons: “Prompt”, “Add URLs”, “Clear”, “Open Viewer”.
+2) Index Grid: each URL as a minimal card with domain label, actions: View / ↗ / ✕ and a sandboxed live thumbnail (16:10).
+3) Strong Viewer: fullscreen overlay with toolbar (Prev, Next, Reload, Open, Close), 100% iframe (sandbox + no-referrer), swipe nav, double‑tap toggles chrome.
+4) Side Prompt Drawer: shows this Brand Command prompt text for reference.
+
+DATA SOURCE:
+- User pastes URLs (one per line). Store/reload via localStorage key rosetta_iframes_v1.
+
+OUTPUT:
+- Return complete single-file HTML/CSS/JS only, mobile‑friendly, minimal, terminal‑stone aesthetic.`;
+
+    // Seed with repository HTML files if none saved yet
+    const SEED = [
+      "ai_studio_code - 2025-09-25T014846.542.html",
+      "ai_studio_code - 2025-09-25T030944.674.html",
+      "ai_studio_code - 2025-09-25T031242.872.html",
+      "ai_studio_code - 2025-09-25T031552.795.html",
+      "ai_studio_code - 2025-09-25T032343.201.html",
+      "ai_studio_code - 2025-09-25T034227.241.html",
+      "ai_studio_code - 2025-09-25T034257.726.html",
+      "ai_studio_code - 2025-09-25T034546.087.html",
+      "ai_studio_code - 2025-09-25T034732.978.html",
+      "ai_studio_code - 2025-09-25T040059.543.html",
+      "ai_studio_code - 2025-09-25T040630.541.html",
+      "ai_studio_code - 2025-09-25T041655.548.html",
+      "ai_studio_code - 2025-09-25T041953.876.html",
+      "ai_studio_code - 2025-09-25T042455.142.html",
+      "ai_studio_code - 2025-09-25T043004.278.html",
+      "ai_studio_code - 2025-09-25T043347.587.html",
+      "ai_studio_code - 2025-09-25T045659.169.html",
+      "cultural_os_innis_folklore_cards_mobile_canvas.html",
+      "innis_cards_mobile_tufte_tool (1).html",
+      "innis_cards_mobile_tufte_tool.html",
+      "innis_deep_time_cards_mobile_print_deck_single_file.html",
+      "sharpen_hone_index_viewer_single_file_html.html",
+      "sharpen_hone_time_space_spectrum_engine_single_file.html",
+      "op-ek.html"
+    ];
+
+    // State
+    let list = loadList();
+    let current = loadIndex();
+    let playlists = loadPlaylists();
+    let activePlaylist = playlists.active || '';
+    if (!list.length) {
+      // populate from seed (relative to index.html)
+      list = SEED.slice();
+      saveList();
+    }
+
+    function loadList() {
+      try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
+    }
+    function saveList() {
+      localStorage.setItem(KEY, JSON.stringify(list));
+    }
+    function loadIndex() {
+      const n = Number(localStorage.getItem(KEY_IDX));
+      return Number.isFinite(n) ? n : 0;
+    }
+    function saveIndex() {
+      localStorage.setItem(KEY_IDX, String(current));
+    }
+
+    function loadPlaylists() {
+      try { return JSON.parse(localStorage.getItem(PKEY)) || {playlists:{}, active:""}; } catch { return {playlists:{}, active:""}; }
+    }
+    function savePlaylists() {
+      localStorage.setItem(PKEY, JSON.stringify({playlists, active: activePlaylist}));
+    }
+
+    function getActiveList() {
+      if (activePlaylist && playlists.playlists[activePlaylist] && playlists.playlists[activePlaylist].length) {
+        return playlists.playlists[activePlaylist];
+      }
+      return list;
+    }
+
+    function normalizeUrl(input) {
+      input = input.trim();
+      if (!input) return null;
+      try {
+        if (/^https?:\/\//i.test(input)) return input;
+        // Allow protocol-relative? Not needed. Treat as relative.
+        const u = new URL(input, location.href);
+        return u.href;
+      } catch { return null; }
+    }
+
+    function urlHostLabel(href) {
+      try {
+        const u = new URL(href);
+        if (u.protocol === 'file:') return 'local file';
+        return u.host;
+      } catch { return href; }
+    }
+
+    function shortLabel(href) {
+      try {
+        const u = new URL(href, location.href);
+        const file = u.pathname.split('/').pop() || '';
+        if (/^ai[_-]?studio/i.test(file)) {
+          const tail = file.match(/(\d{3})(?:\.[a-z0-9]+)?$/i);
+          if (tail) return tail[1];
+        }
+        const basename = file.replace(/\.[a-z0-9]+$/i,'');
+        if (!u.host || u.host === location.host) return basename || u.pathname;
+        const path = u.pathname.split('/').filter(Boolean).slice(-1)[0] || '';
+        return (u.host) + (path ? ' / ' + path : '');
+      } catch {
+        return href;
+      }
+    }
+
+    function render() {
+      els.grid.innerHTML = '';
+      const base = list;
+      if (!base.length) {
+        const empty = document.createElement('div');
+        empty.className = 'engrave-box markers';
+        empty.style.cssText = 'padding:14px; border-radius:12px; color: var(--ink-dim);';
+        empty.innerHTML = '<strong>No URLs yet.</strong> Use “Add URLs” to paste links to your HTML files. Entries are saved locally.';
+        els.grid.appendChild(empty);
+        els.btnOpenViewer.disabled = true;
+        return;
+      }
+      els.btnOpenViewer.disabled = false;
+
+      base.forEach((href, i) => {
+        const card = document.createElement('article');
+        card.className = 'card markers';
+        card.setAttribute('role', 'group');
+        card.setAttribute('aria-label', shortLabel(href));
+
+        const top = document.createElement('div');
+        top.className = 'top';
+        const domain = document.createElement('div');
+        domain.className = 'domain';
+        domain.textContent = shortLabel(href);
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const btnView = document.createElement('button');
+        btnView.className = 'icon';
+        btnView.textContent = 'View';
+        btnView.title = 'Large preview';
+        btnView.addEventListener('click', () => { openPreview(href, i, true); });
+
+        const btnAddQuick = document.createElement('button');
+        btnAddQuick.className = 'icon';
+        btnAddQuick.textContent = '＋';
+        btnAddQuick.title = 'Add to active playlist';
+        btnAddQuick.addEventListener('click', () => addToActivePlaylist(href));
+
+        const linkOut = document.createElement('a');
+        linkOut.className = 'btn icon';
+        linkOut.textContent = '↗';
+        linkOut.href = href;
+        linkOut.target = '_blank';
+        linkOut.rel = 'noopener noreferrer';
+        linkOut.title = 'Open in new tab';
+
+        const btnDel = document.createElement('button');
+        btnDel.className = 'icon danger';
+        btnDel.textContent = '✕';
+        btnDel.title = 'Remove';
+        btnDel.addEventListener('click', () => { removeAt(i); });
+
+        actions.append(btnView, btnAddQuick, linkOut, btnDel);
+        top.append(domain, actions);
+
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb';
+        thumb.title = 'Preview';
+        const frame = document.createElement('iframe');
+        frame.loading = 'lazy';
+        frame.referrerPolicy = 'no-referrer';
+        frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+        frame.src = href;
+        thumb.addEventListener('click', () => openPreview(href, i));
+        const status = document.createElement('div');
+        status.className = 'status';
+        status.textContent = 'loading…';
+
+        let timer = setTimeout(() => {
+          status.textContent = 'blocked or slow';
+          status.style.color = 'var(--maple)';
+          status.style.borderColor = 'var(--maple)';
+        }, 3500);
+
+        frame.addEventListener('load', () => {
+          clearTimeout(timer);
+          status.textContent = 'ready';
+          status.style.color = 'var(--safety)';
+          status.style.borderColor = 'var(--safety)';
+        });
+
+        thumb.append(frame, status);
+
+        card.append(top, thumb);
+        els.grid.appendChild(card);
+      });
+    }
+
+    function removeAt(idx) {
+      list.splice(idx, 1);
+      if (current >= list.length) current = Math.max(0, list.length - 1);
+      saveList();
+      saveIndex();
+      render();
+    }
+
+    // Modals / Drawer
+    function openPreview(href, idx, maximize){
+      previewIndex = idx;
+      els.pFrame.src = href;
+      els.pOpen.href = href;
+      if (maximize) els.pSheet.classList.add('max'); else els.pSheet.classList.remove('max');
+      els.preview.setAttribute('aria-hidden','false');
+    }
+    function closePreview(){ els.preview.setAttribute('aria-hidden','true'); }
+
+    function openDrawer() { els.drawer.setAttribute('aria-hidden', 'false'); els.btnPrompt.setAttribute('aria-pressed','true'); }
+    function closeDrawer() { els.drawer.setAttribute('aria-hidden', 'true'); els.btnPrompt.setAttribute('aria-pressed','false'); }
+
+    function openModal() {
+      els.modal.setAttribute('aria-hidden', 'false');
+      els.textarea.value = list.join('\n');
+      setTimeout(() => els.textarea.focus(), 0);
+    }
+    function closeModal() { els.modal.setAttribute('aria-hidden', 'true'); }
+
+    // Viewer
+    function openViewerAt(idx) {
+      const active = getActiveList();
+      if (!active.length) return;
+      current = ((idx % active.length) + active.length) % active.length;
+      saveIndex();
+      const href = active[current];
+      els.vFrame.src = href;
+      els.vOpen.href = href;
+      els.vOpen.textContent = 'Open ↗';
+      els.vIndex.textContent = (current + 1) + ' / ' + active.length;
+      els.viewer.setAttribute('aria-hidden', 'false');
+      document.body.classList.remove('hidden-chrome');
+    }
+    function closeViewer() { els.viewer.setAttribute('aria-hidden', 'true'); }
+    function prev() { const a = getActiveList(); if (!a.length) return; openViewerAt(current - 1); }
+    function next() { const a = getActiveList(); if (!a.length) return; openViewerAt(current + 1); }
+    function reload() { const a = getActiveList(); els.vFrame.src = a[current] || ''; }
+
+    // Double-tap to toggle chrome
+    let lastTap = 0;
+    els.stage.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        document.body.classList.toggle('hidden-chrome');
+      }
+      lastTap = now;
+    });
+
+    // Swipe nav
+    let touchX = null, touchY = null;
+    els.stage.addEventListener('touchstart', (e) => {
+      const t = e.changedTouches[0];
+      touchX = t.clientX; touchY = t.clientY;
+    }, {passive: true});
+    els.stage.addEventListener('touchend', (e) => {
+      if (touchX == null) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchX;
+      const dy = t.clientY - touchY;
+      touchX = touchY = null;
+      if (Math.abs(dx) > 60 && Math.abs(dy) < 40) {
+        if (dx > 0) prev(); else next();
+      }
+    }, {passive: true});
+
+    // Keyboard nav
+    document.addEventListener('keydown', (e) => {
+      if (els.viewer.getAttribute('aria-hidden') === 'false') {
+        if (e.key === 'Escape') { closeViewer(); }
+        else if (e.key === 'ArrowLeft') { prev(); }
+        else if (e.key === 'ArrowRight') { next(); }
+      }
+    });
+
+    // Buttons
+    els.btnPrompt.addEventListener('click', () => openDrawer());
+    els.drawer.addEventListener('click', (e) => { if (e.target.dataset.close === 'drawer') closeDrawer(); });
+    // Playlists drawer handlers
+    function openPlist() { els.plist.setAttribute('aria-hidden','false'); els.btnPlaylists.setAttribute('aria-pressed','true'); renderPlaylistsUI(); }
+    function closePlist() { els.plist.setAttribute('aria-hidden','true'); els.btnPlaylists.setAttribute('aria-pressed','false'); }
+    document.getElementById('plist').addEventListener('click', (e) => { if (e.target.dataset.close === 'plist') closePlist(); });
+    els.btnPlaylists.addEventListener('click', openPlist);
+    els.btnAdd.addEventListener('click', openModal);
+    els.modal.addEventListener('click', (e) => { if (e.target.dataset.close === 'modal') closeModal(); });
+    // Menu modal handlers
+    function openMenu(){ els.menu.setAttribute('aria-hidden','false'); els.btnMenu.setAttribute('aria-pressed','true'); }
+    function closeMenu(){ els.menu.setAttribute('aria-hidden','true'); els.btnMenu.setAttribute('aria-pressed','false'); }
+    els.btnMenu.addEventListener('click', openMenu);
+    els.menu.addEventListener('click', (e)=>{
+      const act = e.target.dataset.menu;
+      if (e.target.dataset.close === 'menu') { closeMenu(); return; }
+      if (!act) return;
+      if (act==='prompt') { closeMenu(); openDrawer(); }
+      else if (act==='playlists') { closeMenu(); openPlist(); }
+      else if (act==='add') { closeMenu(); openModal(); }
+      else if (act==='open') { closeMenu(); openViewerAt(current); }
+      else if (act==='theme') { closeMenu(); cycleTheme(); }
+      else if (act==='fullscreen') { closeMenu(); toggleFullscreen(); }
+      else if (act==='clear') { closeMenu(); if (confirm('Clear all saved URLs?')) { list = []; current = 0; saveList(); saveIndex(); render(); } }
+    });
+    els.saveUrls.addEventListener('click', () => {
+      const lines = els.textarea.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const normalized = Array.from(new Set(lines.map(normalizeUrl).filter(Boolean)));
+      list = normalized;
+      current = 0;
+      saveList();
+      saveIndex();
+      closeModal();
+      render();
+    });
+    els.btnClear.addEventListener('click', () => {
+      if (confirm('Clear all saved URLs?')) { list = []; current = 0; saveList(); saveIndex(); render(); }
+    });
+    els.btnOpenViewer.addEventListener('click', () => openViewerAt(current));
+
+    els.vPrev.addEventListener('click', prev);
+    els.vNext.addEventListener('click', next);
+    els.vReload.addEventListener('click', reload);
+    els.vClose.addEventListener('click', closeViewer);
+
+    // Playlist logic
+    function addToActivePlaylist(href) {
+      // ensure active playlist exists
+      if (!activePlaylist) { activePlaylist = 'Quicklist'; playlists.active = 'Quicklist'; if (!playlists.playlists['Quicklist']) playlists.playlists['Quicklist'] = []; }
+      const a = playlists.playlists[activePlaylist] || (playlists.playlists[activePlaylist] = []);
+      if (!a.includes(href)) { a.push(href); savePlaylists(); }
+    }
+    function renderPlaylistsUI() {
+      // fill select
+      els.plistSelect.innerHTML = '';
+      const optNone = document.createElement('option'); optNone.value = ''; optNone.textContent = '— All Items —';
+      els.plistSelect.appendChild(optNone);
+      Object.keys(playlists.playlists).forEach(name => {
+        const o = document.createElement('option'); o.value = name; o.textContent = name; els.plistSelect.appendChild(o);
+      });
+      els.plistSelect.value = activePlaylist;
+      renderPlaylistItems();
+    }
+    function renderPlaylistItems() {
+      els.plistItems.innerHTML = '';
+      const items = activePlaylist && playlists.playlists[activePlaylist] ? playlists.playlists[activePlaylist] : [];
+      if (!items.length) {
+        const p = document.createElement('p'); p.style.color = 'var(--ink-dim)'; p.textContent = 'No items in active playlist.'; els.plistItems.appendChild(p); return;
+      }
+      items.forEach((href, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px; border-bottom:1px solid var(--line)';
+        const label = document.createElement('div'); label.style.flex = '1'; label.style.fontSize='12px'; label.textContent = href;
+        const up = document.createElement('button'); up.textContent = '↑'; up.title='Up';
+        const down = document.createElement('button'); down.textContent = '↓'; down.title='Down';
+        const del = document.createElement('button'); del.textContent = '✕'; del.className='danger'; del.title='Remove';
+        up.addEventListener('click', ()=>{ if(i>0){ const a=playlists.playlists[activePlaylist]; [a[i-1],a[i]]=[a[i],a[i-1]]; savePlaylists(); renderPlaylistItems(); }});
+        down.addEventListener('click', ()=>{ const a=playlists.playlists[activePlaylist]; if(i<a.length-1){ [a[i+1],a[i]]=[a[i],a[i+1]]; savePlaylists(); renderPlaylistItems(); }});
+        del.addEventListener('click', ()=>{ const a=playlists.playlists[activePlaylist]; a.splice(i,1); savePlaylists(); renderPlaylistItems(); });
+        row.append(label, up, down, del);
+        els.plistItems.appendChild(row);
+      });
+    }
+    els.plistCreate.addEventListener('click', () => {
+      const name = (els.plistName.value || '').trim(); if(!name) return;
+      if (!playlists.playlists[name]) playlists.playlists[name] = [];
+      activePlaylist = name; playlists.active = name; savePlaylists(); els.plistName.value=''; renderPlaylistsUI();
+    });
+    els.plistSelect.addEventListener('change', () => { activePlaylist = els.plistSelect.value; playlists.active = activePlaylist; savePlaylists(); renderPlaylistItems(); });
+    els.plistUse.addEventListener('click', () => { activePlaylist = els.plistSelect.value; playlists.active = activePlaylist; savePlaylists(); closePlist(); render(); });
+    els.plistDelete.addEventListener('click', () => {
+      const name = els.plistSelect.value; if(!name) return;
+      if(confirm(`Delete playlist "${name}"?`)) { delete playlists.playlists[name]; if(activePlaylist===name) activePlaylist=''; playlists.active=activePlaylist; savePlaylists(); renderPlaylistsUI(); }
+    });
+    els.plistFromIndex.addEventListener('click', () => {
+      const name = prompt('Name for new playlist?'); if(!name) return;
+      playlists.playlists[name] = list.slice(); activePlaylist = name; playlists.active = name; savePlaylists(); renderPlaylistsUI();
+    });
+    els.plistClearItems.addEventListener('click', () => { if(activePlaylist && playlists.playlists[activePlaylist]) { if(confirm('Clear items in active playlist?')) { playlists.playlists[activePlaylist] = []; savePlaylists(); renderPlaylistItems(); } } });
+
+    // Init
+    els.brandPrompt.textContent = BRAND_TEXT;
+    applyTheme(loadTheme());
+    render();
+
+    // Restore viewer index if any persisted and list present
+    if (list.length && current >= 0 && current < list.length) {
+      // Do not auto-open viewer on load to respect user intent
+    }
+
+    // Theme functions
+    function loadTheme(){ return localStorage.getItem(THEME_KEY) || 'basalt'; }
+    function saveTheme(t){ localStorage.setItem(THEME_KEY, t); }
+    function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); if(els.themeName) els.themeName.textContent = t; saveTheme(t); }
+    function cycleTheme(){ const order = ['basalt','steel','parchment']; const cur = loadTheme(); const idx = (order.indexOf(cur)+1)%order.length; applyTheme(order[idx]); }
+
+  })();
+  </script>
+  <footer role="contentinfo" style="margin:16px; padding:10px; border:1px solid var(--line); border-radius:10px; color:var(--ink-dim); font-size:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.35));" class="engrave-box markers">
+    <div><strong>Made by Watson.</strong> Rosetta Protocol interface.</div>
+    <div style="margin-top:6px;">
+      Privacy: single-file app, no network calls or analytics. Uses localStorage keys
+      <code>rosetta_iframes_v1</code>, <code>rosetta_playlists_v1</code>, <code>rosetta_theme_v1</code>. Data stays on your device.
+    </div>
+  </footer>
+</body>
+</html>

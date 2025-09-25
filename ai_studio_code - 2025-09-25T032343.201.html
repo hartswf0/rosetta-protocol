@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Arena of Struggle: A Stuart Hall Analysis of the Kimmel Affair</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-heading: 'Inter', sans-serif;
+            --font-body: 'Lora', serif;
+            --color-bg: #fdfdfd;
+            --color-text: #212529;
+            --color-primary: #005A9C;
+            --color-secondary: #6c757d;
+            --color-containment: #B83B5E;
+            --color-resistance: #38A3A5;
+            --color-border: #e9ecef;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        body {
+            margin: 0;
+            font-family: var(--font-body);
+            font-size: 18px;
+            line-height: 1.8;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+        }
+        h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 900; line-height: 1.2; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .grid-container { display: grid; grid-template-columns: 1fr; gap: 3rem; }
+        @media (min-width: 1024px) {
+            .grid-container { grid-template-columns: 280px 1fr; }
+        }
+
+        /* --- Header --- */
+        .main-header {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1505682499293-233fb1417740?auto=format&fit=crop&w=1200&q=80') center/cover;
+            color: white;
+            text-align: center;
+            padding: 5rem 1rem;
+        }
+        .main-header h1 { font-size: 3.5rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);}
+        .main-header .subtitle { font-size: 1.25rem; font-style: italic; max-width: 700px; margin: 0 auto; }
+        .main-header .conjuncture { font-family: var(--font-heading); font-weight: 700; background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; margin-top: 2rem; border: 1px solid rgba(255,255,255,0.3); }
+
+        /* --- Sticky Nav --- */
+        .sticky-nav {
+            position: sticky;
+            top: 2rem;
+            align-self: start;
+        }
+        .sticky-nav h3 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-secondary); border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .sticky-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sticky-nav li a {
+            display: block; padding: 0.6rem 0; text-decoration: none; color: var(--color-text);
+            font-family: var(--font-heading); font-weight: 700; transition: color 0.2s, padding-left 0.2s;
+        }
+        .sticky-nav li a:hover { color: var(--color-primary); }
+        .sticky-nav li a.active { color: var(--color-primary); padding-left: 1rem; border-left: 3px solid var(--color-primary); }
+        @media (max-width: 1023px) { .sticky-nav { display: none; } }
+
+        /* --- Main Content --- */
+        .content-section { padding-top: 3rem; margin-top: 3rem; border-top: 1px solid var(--color-border); }
+        .content-section:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+        .content-section h2 { font-size: 2.2rem; margin-bottom: 2rem; }
+
+        /* --- Definition Card --- */
+        .definition-card {
+            background: var(--card-bg); padding: 2rem; border-radius: 8px; box-shadow: var(--shadow);
+            margin-bottom: 2rem; border-left: 5px solid var(--color-primary);
+        }
+        .definition-card h3 { font-size: 1.5rem; margin-top: 0; margin-bottom: 1rem; }
+        .definition-card h3 span { font-weight: 400; color: var(--color-secondary); }
+        .definition-card blockquote {
+            font-style: italic; margin: 0 0 1rem 0; padding-left: 1.5rem;
+            border-left: 3px solid var(--color-border);
+        }
+        .definition-card .explanation { font-family: var(--font-heading); font-weight: 400; font-size: 1.1rem; }
+        .definition-card .toggle-definition {
+            color: var(--color-primary); cursor: pointer; font-family: var(--font-heading);
+            font-weight: 700; display: inline-block; margin-top: 1rem;
+        }
+        .collapsible-content { display: none; }
+
+        /* --- Timeline & Source Modeling --- */
+        #timeline-section h3 { text-align: center; font-size: 1.5rem; margin-bottom: 2rem; }
+        .timeline-container { position: relative; padding: 2rem 0; }
+        .timeline-container::before {
+            content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+            width: 4px; background: var(--color-border); border-radius: 2px;
+        }
+        .timeline-item {
+            padding: 10px 40px; position: relative; width: 50%;
+            cursor: pointer;
+        }
+        .timeline-item.containment { left: 50%; text-align: left; }
+        .timeline-item.resistance { left: 0; text-align: right; }
+        
+        /* Directional arrows */
+        .timeline-item.containment::before {
+            content: ''; position: absolute; top: 22px; right: 20px;
+            height: 0; width: 0; border: 10px solid transparent; border-right-color: #f0f0f0;
+        }
+         .timeline-item.resistance::before {
+            content: ''; position: absolute; top: 22px; left: 20px;
+            height: 0; width: 0; border: 10px solid transparent; border-left-color: #f0f0f0;
+        }
+        
+        /* Circles on the line */
+        .timeline-item::after {
+            content: attr(data-source); font-family: var(--font-heading); font-size: 0.7rem; font-weight: 900;
+            color: white; position: absolute; top: 20px;
+            width: 30px; height: 30px; line-height: 30px; text-align: center;
+            border-radius: 50%; z-index: 1;
+        }
+        .timeline-item.containment::after { right: -17px; background-color: var(--color-containment); }
+        .timeline-item.resistance::after { left: -17px; background-color: var(--color-resistance); }
+        
+        .timeline-content {
+            padding: 1rem 1.5rem; background: #f0f0f0; border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .timeline-item:hover .timeline-content {
+            transform: scale(1.03);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .timeline-content h4 { margin: 0 0 0.5rem 0; font-size: 1.1rem; }
+        .timeline-content .outlet { font-weight: 700; font-family: var(--font-heading); }
+        .timeline-content .outlet.containment { color: var(--color-containment); }
+        .timeline-content .outlet.resistance { color: var(--color-resistance); }
+
+        @media (max-width: 768px) {
+            .timeline-container::before { left: 15px; }
+            .timeline-item, .timeline-item.containment { width: 100%; padding-left: 60px; padding-right: 15px; left: 0; text-align: left; }
+            .timeline-item::after, .timeline-item.containment::after, .timeline-item.resistance::after { left: 0; }
+            .timeline-item::before, .timeline-item.containment::before { border-right-color: transparent; border-left-color: #f0f0f0; left: 40px; right: auto;}
+        }
+
+        /* --- Modal for Source Analysis --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: flex;
+            justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s; z-index: 1000; padding: 1rem;
+        }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 8px;
+            max-width: 700px; width: 100%; transform: translateY(20px);
+            transition: transform 0.3s;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.visible .modal-content { transform: translateY(0); }
+        .modal-content h3 { margin-top: 0; font-size: 1.8rem; }
+        .modal-content .modal-meta { font-family: var(--font-heading); margin-bottom: 1.5rem; color: var(--color-secondary); }
+        .modal-content .analysis-tag { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; color: white; font-family: var(--font-heading); font-weight: 700; font-size: 0.9rem; margin-right: 0.5rem; }
+        .analysis-tag.containment { background-color: var(--color-containment); }
+        .analysis-tag.resistance { background-color: var(--color-resistance); }
+        .modal-content h4 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-primary); margin: 1.5rem 0 0.5rem 0; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;}
+        .modal-content a { color: var(--color-primary); font-weight: 700; text-decoration: none; }
+        .modal-close {
+            background: var(--color-secondary); color: white; border: none;
+            padding: 0.7rem 1.5rem; border-radius: 5px; cursor: pointer;
+            display: block; margin: 2rem auto 0 auto; font-family: var(--font-heading); font-weight: 700;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <h1>The Arena of Struggle</h1>
+        <p class="subtitle">A Stuart Hall-Inspired Analysis of the Jimmy Kimmel Affair</p>
+        <p class="conjuncture">
+            **The Conjuncture:** ABC’s suspension and reinstatement of Jimmy Kimmel amid pressure from Trump-aligned actors triggered a cross-platform fight over free-speech norms and institutional authority.
+        </p>
+    </header>
+
+    <div class="container grid-container">
+        <aside class="sticky-nav" id="sticky-nav">
+            <h3>Analytical Framework</h3>
+            <ul id="nav-links">
+                <li><a href="#periodisation">1. Periodisation</a></li>
+                <li><a href="#popular">2. The 'Popular'</a></li>
+                <li><a href="#struggle">3. The Dialectic of Struggle</a></li>
+                <li><a href="#articulation">4. Articulation & The Sign</a></li>
+                <li><a href="#timeline-section">5. Source Timeline & Modeling</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <section id="periodisation" class="content-section">
+                <h2>1. Periodisation: Identifying the Breaks</h2>
+                <div class="definition-card">
+                    <h3>Stuart Hall on... <span>Periodisation</span></h3>
+                    <div class="collapsible-content">
+                        <blockquote>“Difficult problems are posed here by périodisation... Are the major breaks largely descriptive? Do they arise largely from within popular culture itself, or from factors which are outside of but impinge on it? ... I select this period – the 1880s-1920s – because it is one of the real test cases... a period of deep structural change.”</blockquote>
+                        <p class="explanation">Hall insists that we must identify the specific historical moments, or "breaks," where the rules of the game change. We must ask what caused these shifts—were they internal to culture, or caused by external pressures like politics, technology, or economics?</p>
+                    </div>
+                     <span class="toggle-definition">Show Definition...</span>
+                </div>
+                <p>Applying this, the Kimmel affair isn't one long event, but a series of ruptures. We can identify two key breakpoints where the terrain of struggle was reconstituted:</p>
+                <ul>
+                    <li><strong>Breakpoint 1 (Sep 15–17): The Act of Containment.</strong> The initial remarks are met with external pressure (FCC, Trump) leading to a corporate action (ABC's suspension). This is a moment of disciplinary "reform" and "proscription," where the power-bloc actively pushes Kimmel's expression to the margins.</li>
+                    <li><strong>Breakpoint 2 (Sep 23–24): The Act of Resistance & Re-appropriation.</strong> Kimmel’s return is not a simple continuation. The monologue, combined with the massive digital audience bypassing affiliate blackouts, constitutes a qualitative change. The "apparatus" of distribution shifts from broadcast TV to social platforms, re-centering the discourse on Kimmel's terms.</li>
+                </ul>
+            </section>
+
+            <section id="popular" class="content-section">
+                <h2>2. Defining The 'Popular'</h2>
+                <div class="definition-card">
+                    <h3>Stuart Hall on... <span>The 'Popular'</span></h3>
+                    <div class="collapsible-content">
+                        <blockquote>“I settle for a third definition of ‘popular’... what is essential to the definition of popular culture is the relations which define ‘popular culture’ in a continuing tension (relationship, influence and antagonism) to the dominant culture... It has at its centre the changing and uneven relations of force... the question of cultural struggle and its many forms.”</blockquote>
+                        <p class="explanation">For Hall, "popular culture" is not a fixed set of items or authentic folk traditions. It is a battlefield, defined by the constant tension and struggle between the culture of the dominant power-bloc and the culture of "the people" (an alliance of subordinated classes and groups).</p>
+                    </div>
+                    <span class="toggle-definition">Show Definition...</span>
+                </div>
+                <p>The Kimmel affair is a perfect example of this definition in action. It is not simply about whether late-night comedy is "good" or "bad." It is about the struggle over its meaning and function:</p>
+                <ul>
+                    <li><strong>The Power-Bloc's Definition:</strong> Attempts to define Kimmel's monologue as illegitimate, dangerous speech that falls outside the bounds of acceptable broadcast content. Their goal is to contain it.</li>
+                    <li><strong>The Popular Forces' Definition:</strong> An alliance of entertainers, audiences, and even some free-speech conservatives worked to define the monologue as a legitimate, even necessary, form of satire—a core part of a democratic "popular" tradition. Their goal was to resist containment.</li>
+                </ul>
+                <p>The very meaning of Kimmel's show became the prize to be won in this cultural struggle.</p>
+            </section>
+
+            <section id="struggle" class="content-section">
+                <h2>3. The Dialectic of Cultural Struggle</h2>
+                <div class="definition-card">
+                    <h3>Stuart Hall on... <span>The Dialectic</span></h3>
+                    <div class="collapsible-content">
+                        <blockquote>“In the study of popular culture, we should always start here: with the double-stake in popular culture, the double movement of containment and resistance, which is always inevitably inside it... Cultural struggle, of course, takes many forms: incorporation, distortion, resistance, negotiation, recuperation.”</blockquote>
+                        <p class="explanation">Hall argues that culture is a constant "double movement." The dominant culture tries to contain, manage, and "reform" popular forms (Containment). At the same time, popular forces push back, challenge, and resist these efforts (Resistance). This is a perpetual, dynamic struggle, not a one-time event.</p>
+                    </div>
+                     <span class="toggle-definition">Show Definition...</span>
+                </div>
+                <p>We can model the media artifacts in the Kimmel affair along this dialectic. Every article, statement, and video clip can be seen as a move in this game:</p>
+                <ul>
+                    <li><strong>Mechanisms of Containment:</strong> The power-bloc used tactics of **Ban/Proscription** (affiliate blackouts), **Policing** (FCC threats), and attempts at **Incorporation** (framing Kimmel as an out-of-touch elite, thus neutralizing his "popular" appeal).</li>
+                    <li><strong>Mechanisms of Resistance:</strong> The popular forces used the **Commercial Insertion** of viral clips to bypass the ban, **Appropriation** by reframing the debate around the First Amendment, and building a cross-ideological coalition to resist incorporation.</li>
+                </ul>
+                <p>The timeline below visually models this back-and-forth, showing how each source functions as a move of either containment or resistance.</p>
+            </section>
+            
+            <section id="articulation" class="content-section">
+                <h2>4. Articulation & The Arena of the Sign</h2>
+                 <div class="definition-card">
+                    <h3>Stuart Hall on... <span>Articulation & The Sign</span></h3>
+                     <div class="collapsible-content">
+                        <blockquote>“What matters is not the intrinsic or historically fixed objects of culture, but the state of play in cultural relations... The meaning of a cultural symbol is given in part by the social field into which it is incorporated, the practices with which it articulates and is made to resonate... Sign becomes an arena of class struggle.” (Citing Volosinov)</blockquote>
+                        <p class="explanation">Hall argues that cultural symbols have no fixed meaning. Their meaning is created by "articulating" them—linking them—to certain ideas, feelings, or political projects. The cultural struggle is a fight over these articulations. A swastika can be articulated to fascism or, bizarrely, to punk rebellion. The sign itself is an "arena of struggle."</p>
+                    </div>
+                      <span class="toggle-definition">Show Definition...</span>
+                </div>
+                <p>In this conflict, key signs and terms were battlegrounds:</p>
+                <ul>
+                    <li><strong>"Free Speech":</strong> The power-bloc tried to articulate this to mean "freedom from consequences for harmful speech." The popular forces articulated it as "freedom from government censorship and corporate cowardice." The struggle was over which definition would become common sense.</li>
+                    <li><strong>"Jimmy Kimmel":</strong> The man himself became a sign. Was he an "elite liberal mouthpiece" (the power-bloc's articulation) or a "brave satirist defending democracy" (the popular forces' articulation)?</li>
+                    <li><strong>"The People":</strong> As Hall notes, both sides claim to speak for "the people." The Trump administration claimed "the people" were offended. Kimmel's supporters claimed "the people" value free expression and tuned in by the millions to prove it. The struggle was to constitute and claim this powerful political subject.</li>
+                </ul>
+            </section>
+
+            <section id="timeline-section" class="content-section">
+                <h2>5. Source Timeline & Modeling</h2>
+                <h3>The Double Movement of Containment & Resistance</h3>
+                <div class="timeline-container" id="timeline-container">
+                    <!-- Timeline items will be injected here by JavaScript -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content" id="modal-content">
+            <!-- Modal content will be injected here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sourceData = [
+            { id: "S03", date: "Sep 16", outlet: "Fox News", title: "Kimmel chokes up… never intended…", type: "containment", analysis: "This framing by a power-bloc outlet focuses on Kimmel's emotion, attempting to define his actions as a personal failing ('moral fault') rather than a political statement. It's a move of **incorporation**, neutralizing the radical critique by personalizing it." },
+            { id: "S01", date: "Sep 16", outlet: "Fox News", title: "Trump calls ABC support…", type: "containment", analysis: "A direct intervention from the apex of the power-bloc. This uses the mechanism of **policing**, framing Kimmel's speech not as satire but as an illegal 'campaign contribution.' It attempts to move the discourse from culture to criminality." },
+            { id: "S04", date: "Sep 17", outlet: "AP", title: "Suspension reaction", type: "resistance", analysis: "Legacy media reports on the widespread backlash, giving legitimacy to the counter-narrative. This is an act of **resistance** by amplifying the voices of the 'popular forces' and documenting the emerging coalition." },
+            { id: "S23", date: "Sep 17", outlet: "Fox News", title: "Kimmel slams FCC chair", type: "containment", analysis: "The headline frames Kimmel's defense as an aggressive 'slam,' portraying him as a combatant against a legitimate state body. This works to delegitimize his resistance by framing it as an attack on 'institutional order' rather than a defense of rights." },
+            { id: "S21", date: "Sep 17", outlet: "Hollywood Reporter", title: "Industry & politicians react", type: "resistance", analysis: "Documents the formation of the 'popular forces' as an alliance. By showing cross-ideological support (unions, actors, and some conservatives), it resists the power-bloc's attempt to frame this as a purely partisan issue. This is **coalition building** as resistance." },
+            { id: "S02", date: "Sep 23", outlet: "CNN", title: "Monologue transcript (Kimmel return)", type: "resistance", analysis: "The primary artifact of resistance. Kimmel **appropriates** the moment to reframe the entire event, articulating his actions not as a mistake but as a defense of the 'popular tradition' of satire against the power-bloc. The transcript itself becomes a key text for this movement." },
+            { id: "S09", date: "Sep 23", outlet: "YouTube", title: "Kimmel return clip #1", type: "resistance", analysis: "This is a key mechanism of transformation: **commercial insertion** via a new apparatus. The viral clip bypasses the **ban/proscription** by the affiliates, demonstrating how popular forces can reroute distribution to resist containment by the old guard." },
+            { id: "S05", date: "Sep 24", outlet: "CNN", title: "Ratings on return (6.3m)", type: "resistance", analysis: "The ratings are articulated as proof of the 'popular will.' This artifact uses market logic as a weapon of resistance, arguing that 'the people' have voted with their viewership, validating Kimmel and rejecting the power-bloc's attempt at censorship." },
+            { id: "S08", date: "Sep 24", outlet: "Fox News", title: "Not good enough", type: "containment", analysis: "A classic move of **containment** that refuses to accept the reframing. It attempts to maintain the 'moral fault' narrative and rejects Kimmel's re-articulation of the event, asserting the power-bloc's definition of the situation." },
+            { id: "S25", date: "Sep 24", outlet: "Fox News", title: "TPUSA rejects apology", type: "containment", analysis: "This centers the voice of the 'impacted' (as defined by the power-bloc) to maintain pressure. It's a tactic to resist the closure of the debate and keep the 'moral fault' frame alive, preventing the popular narrative of 'free speech triumph' from solidifying." },
+            { id: "S27", date: "Sep 24", outlet: "CNN", title: "Video round-up / hosts reactions", type: "resistance", analysis: "This shows the **solidarity** within the popular forces. By compiling clips of other hosts, it demonstrates a unified front, strengthening the coalition and amplifying the 'defend satire' narrative across multiple platforms." }
+        ];
+
+        // --- Populate Timeline ---
+        const timelineContainer = document.getElementById('timeline-container');
+        sourceData.forEach(item => {
+            const timelineItem = document.createElement('div');
+            timelineItem.className = `timeline-item ${item.type}`;
+            timelineItem.dataset.source = item.id;
+            timelineItem.innerHTML = `
+                <div class="timeline-content">
+                    <h4>${item.date} SEP</h4>
+                    <span class="outlet ${item.type}">${item.outlet}</span>
+                    <p>${item.title}</p>
+                </div>
+            `;
+            timelineContainer.appendChild(timelineItem);
+        });
+
+        // --- Modal Logic ---
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContent = document.getElementById('modal-content');
+        document.querySelectorAll('.timeline-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const sourceId = item.dataset.source;
+                const data = sourceData.find(d => d.id === sourceId);
+                const fullSourceInfo = sources[sourceId];
+                if (data && fullSourceInfo) {
+                    modalContent.innerHTML = `
+                        <h3>${data.outlet}: "${data.title}"</h3>
+                        <div class="modal-meta">
+                            <span class="analysis-tag ${data.type}">${data.type.toUpperCase()}</span>
+                            <span>Source ID: ${data.id}</span>
+                        </div>
+                        <h4>Stuart Hall Analysis:</h4>
+                        <p>${data.analysis}</p>
+                        <h4>Source Link:</h4>
+                        <a href="${fullSourceInfo.url}" target="_blank" rel="noopener noreferrer">${fullSourceInfo.title}</a>
+                        <button class="modal-close">Close</button>
+                    `;
+                    modalOverlay.classList.add('visible');
+                }
+            });
+        });
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay || e.target.classList.contains('modal-close')) {
+                modalOverlay.classList.remove('visible');
+            }
+        });
+        
+        // --- Definition Toggle ---
+        document.querySelectorAll('.toggle-definition').forEach(toggle => {
+            const content = toggle.previousElementSibling;
+            toggle.addEventListener('click', () => {
+                if (content.style.display === 'block') {
+                    content.style.display = 'none';
+                    toggle.textContent = 'Show Definition...';
+                } else {
+                    content.style.display = 'block';
+                    toggle.textContent = 'Hide Definition...';
+                }
+            });
+        });
+
+        // --- Sticky Nav Active State ---
+        const navLinks = document.querySelectorAll('#nav-links a');
+        const sections = document.querySelectorAll('.content-section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    navLinks.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href').substring(1) === entry.target.id);
+                    });
+                }
+            });
+        }, { rootMargin: "-40% 0px -60% 0px" });
+        sections.forEach(section => observer.observe(section));
+
+        const sources = {S01: {outlet: "Fox News", title: "Trump calls ABC’s Jimmy Kimmel support…", url: "https://www.foxnews.com/media/trump-calls-abcs-jimmy-kimmel-support-major-illegal-campaign-contribution-democrats"},S02: {outlet: "CNN", title: "Monologue transcript (Kimmel return)", url: "https://www.cnn.com/2025/09/24/business/monologue-transcript-kimmel-return"},S03: {outlet: "Fox News", title: "Kimmel chokes up… never intended…", url: "https://www.foxnews.com/media/jimmy-kimmel-chokes-up-he-explains-kirk-comments-says-he-never-intended-mock-assassination"},S04: {outlet: "AP", title: "Suspension reaction", url: "https://apnews.com/article/jimmy-kimmel-suspended-reaction-03c1ae9d16a4a47481e855de1668def3"},S05: {outlet: "CNN", title: "Ratings on return (6.3m)", url: "https://www.cnn.com/2025/09/24/media/ratings-jimmy-kimmel-return-abc-broadcast"},S08: {outlet: "Fox News", title: "Not good enough", url: "https://www.foxnews.com/media/conservatives-say-kimmels-attempt-clarify-charlie-kirk-comments-not-good-enough"},S09: {outlet: "YouTube", title: "Kimmel return clip #1", url: "https://www.youtube.com/watch?v=EHNYV71fKQ4"},S21: {outlet: "Hollywood Reporter", title: "Industry & politicians react", url: "https://www.hollywoodreporter.com/tv/tv-news/hollywood-politicians-react-jimmy-kimmel-live-suspension-1236374303/"},S23: {outlet: "Fox News", title: "Kimmel slams FCC chair", url: "https://www.foxnews.com/media/jimmy-kimmel-late-night-return-slams-fcc-chair-free-speech-pivot"},S25: {outlet: "Fox News", title: "TPUSA rejects apology", url: "https://www.foxnews.com/media/turning-point-usa-rejects-jimmy-kimmels-tearful-apology-over-charlie-kirk-death-comment"},S27: {outlet: "CNN", title: "Video round-up / hosts reactions", url: "https://www.cnn.com/2025/09/24/business/video/jimmy-kimmel-abc-return-late-night-hosts-reactions-cprog-digvid"}};
+    });
+    </script>
+</body>
+</html>

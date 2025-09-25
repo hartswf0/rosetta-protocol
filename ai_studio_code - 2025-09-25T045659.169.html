@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentation: A Stuart Hall Analysis of the Kimmel Affair</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&family=Source+Serif+4:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* --- Light Theme (Default) --- */
+            --font-heading: 'Poppins', sans-serif;
+            --font-body: 'Source Serif 4', serif;
+            --color-bg: #ffffff;
+            --color-text: #2c3e50;
+            --color-primary: #2980b9;
+            --color-secondary: #7f8c8d;
+            --color-containment: #c0392b;
+            --color-resistance: #27ae60;
+            --color-border: #ecf0f1;
+            --card-bg: #f8f9fa;
+            --presentation-bg: #1e2227;
+            --presentation-text: #ecf0f1;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .theme-dark {
+            --color-bg: #1c1c1e;
+            --color-text: #f2f2f7;
+            --color-primary: #0a84ff;
+            --color-secondary: #8e8e93;
+            --color-containment: #ff453a;
+            --color-resistance: #30d158;
+            --color-border: #3a3a3c;
+            --card-bg: #2c2c2e;
+        }
+        .theme-newspaper {
+            --font-body: 'Source Serif 4', serif;
+            --color-bg: #fdf6e3;
+            --color-text: #2a2a2a;
+            --color-primary: #005a9c;
+            --color-secondary: #5a5a5a;
+            --color-containment: #a52a2a;
+            --color-resistance: #006400;
+            --color-border: #e8dbbc;
+            --card-bg: #faf3e0;
+            --presentation-bg: #2a2a2a;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background-color: var(--color-bg); color: var(--color-text); font-family: var(--font-body); line-height: 1.7; transition: background-color 0.3s, color 0.3s; }
+        h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 900; line-height: 1.2; }
+
+        /* --- THEME SWITCHER --- */
+        .theme-switcher { text-align: center; padding: 1rem 0; background-color: var(--card-bg); border-bottom: 1px solid var(--color-border); }
+        .theme-btn {
+            background: none; border: 1px solid var(--color-border); color: var(--color-secondary);
+            padding: 0.5rem 1rem; border-radius: 20px; margin: 0 0.25rem;
+            cursor: pointer; font-family: var(--font-heading); font-size: 0.8rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .theme-btn.active { background-color: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+        /* --- ARTICLE VIEW (Default) --- */
+        #article-view { padding: 2rem 1rem; max-width: 800px; margin: 0 auto; }
+        .article-header { text-align: center; margin-bottom: 3rem; }
+        .article-header h1 { font-size: clamp(2.5rem, 8vw, 3.5rem); }
+        .article-header p { font-size: 1.2rem; color: var(--color-secondary); }
+        .start-presentation-btn {
+            background: var(--color-primary); color: white; border: none; padding: 1rem 2rem;
+            border-radius: 50px; font-family: var(--font-heading); font-weight: 700; font-size: 1.1rem;
+            cursor: pointer; transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 1rem;
+        }
+        .start-presentation-btn:hover { background-color: var(--color-primary); transform: translateY(-3px); opacity: 0.9; }
+        .article-section { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border); }
+
+        /* --- PRESENTATION VIEW --- */
+        #presentation-view {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--presentation-bg); color: var(--presentation-text);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.4s; z-index: 1000;
+        }
+        #presentation-view.visible { opacity: 1; visibility: visible; }
+        .slide-container { width: 100%; height: 100%; position: relative; }
+        .slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding: 5%; box-sizing: border-box; opacity: 0; visibility: hidden;
+            transform: scale(0.98); transition: opacity 0.5s, transform 0.5s;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .slide.active { opacity: 1; visibility: visible; transform: scale(1); }
+        .slide h1, .slide h2 { font-size: clamp(2.2rem, 7vw, 3.5rem); }
+        .slide p { max-width: 800px; font-size: clamp(1rem, 3vw, 1.2rem); }
+        .slide blockquote { border-left: 4px solid var(--color-primary); padding-left: 1.5rem; font-style: italic; max-width: 700px; margin: 2rem auto; text-align: left; }
+        .slide .explanation { font-family: var(--font-heading); font-weight: 400; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px; font-size: clamp(1rem, 3vw, 1.2rem); }
+
+        /* Specific Slide Layouts */
+        .slide.title-slide h1 { font-size: clamp(3rem, 10vw, 5rem); }
+        .slide-columns { display: flex; flex-direction: column; gap: 2rem; text-align: left; width: 100%; max-width: 1200px; }
+        @media (min-width: 768px) { .slide-columns { flex-direction: row; } }
+        .slide-column { flex: 1; }
+        .slide-column h3 { font-size: 1.5rem; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .slide-column.containment h3 { border-bottom: 3px solid var(--color-containment); }
+        .slide-column.resistance h3 { border-bottom: 3px solid var(--color-resistance); }
+        .slide ul { list-style: none; padding: 0; }
+        .slide li { font-size: 1.1rem; margin-bottom: 0.5rem; }
+
+        .timeline-item-pres {
+            background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;
+            margin-bottom: 1rem; cursor: pointer; transition: background-color 0.3s;
+        }
+        .timeline-item-pres:hover { background: rgba(255,255,255,0.1); }
+        .timeline-item-pres .outlet { font-weight: 700; }
+        .timeline-item-pres .outlet.containment { color: var(--color-containment); }
+        .timeline-item-pres .outlet.resistance { color: var(--color-resistance); }
+        
+        /* Presentation UI */
+        .presentation-ui { position: fixed; bottom: 0; left: 0; width: 100%; padding: 1rem; display: flex; justify-content: space-between; align-items: center; z-index: 1010; }
+        .nav-btn, .exit-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.75rem 1.25rem; border-radius: 8px; cursor: pointer; font-family: var(--font-heading); font-weight: 700; transition: background-color 0.3s; -webkit-appearance: none; }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .slide-counter { font-family: var(--font-heading); font-weight: 700; }
+        #progress-bar { position: fixed; bottom: 0; left: 0; height: 5px; background: var(--color-primary); width: 0; transition: width 0.3s; z-index: 1011;}
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s; z-index: 2000; padding: 1rem;
+        }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: var(--card-bg); color: var(--color-text); padding: 2rem; border-radius: 8px;
+            max-width: 700px; width: 100%; transform: translateY(20px); transition: transform 0.3s;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-content h3 { color: var(--color-primary); }
+        .modal-content a { color: var(--color-primary); font-weight: 700; }
+        .modal-close-btn { background-color: var(--color-secondary); color: white; border: none; margin: 1.5rem auto 0 auto; display: block; padding: 0.75rem 1.5rem; border-radius: 8px; font-family: var(--font-heading); font-weight: 700; cursor: pointer;}
+    </style>
+</head>
+<body id="body">
+
+    <div class="theme-switcher">
+        <button class="theme-btn" data-theme="light">Light</button>
+        <button class="theme-btn" data-theme="dark">Dark</button>
+        <button class="theme-btn" data-theme="newspaper">Newspaper</button>
+    </div>
+
+    <main id="article-view">
+        <header class="article-header">
+            <h1>The Arena of Struggle</h1>
+            <p>A Stuart Hall-Inspired Analysis of the Jimmy Kimmel Affair</p>
+            <button class="start-presentation-btn" id="start-pres">Enter Presentation Mode</button>
+        </header>
+        <section class="article-section">
+            <h2>About this Analysis</h2>
+            <p>This document explores the September 2025 Jimmy Kimmel suspension and return through the theoretical lens of Stuart Hall. It treats the event not as a simple news story, but as a "conjuncture"—a moment where complex social forces collide. The analysis models the media coverage as a "dialectic of cultural struggle," identifying moves of **containment** by the power-bloc and acts of **resistance** by popular forces. Click the button above to view this as a slide-by-slide presentation.</p>
+        </section>
+    </main>
+
+    <div id="presentation-view">
+        <div class="slide-container">
+            <div class="slide active title-slide"><h1>The Arena of Struggle</h1><p>A Stuart Hall-Inspired Analysis of the Jimmy Kimmel Affair</p></div>
+            <div class="slide"><h2>The Conjuncture</h2><p class="explanation">ABC’s suspension and reinstatement of Kimmel amid pressure from Trump-aligned actors triggered a cross-platform fight over free-speech norms and institutional authority.</p></div>
+            <div class="slide"><h2>1. Periodisation</h2><blockquote>“Difficult problems are posed here by périodisation... Are the major breaks largely descriptive? Do they arise... from factors which are outside of but impinge on it?”</blockquote><p>Hall demands we identify the key historical "breaks" where the rules of the struggle change, driven by external pressures.</p></div>
+            <div class="slide"><h2>The Breaks in Play</h2><div class="slide-columns"><div class="slide-column"><h3>Breakpoint 1: Containment</h3><p><strong>(Sep 15–17)</strong> External political pressure leads to a corporate disciplinary action (the suspension). The power-bloc actively pushes Kimmel's expression to the margins.</p></div><div class="slide-column"><h3>Breakpoint 2: Resistance</h3><p><strong>(Sep 23–24)</strong> Kimmel’s return, amplified by a massive digital audience bypassing TV blackouts, constitutes a qualitative change in the "apparatus" of distribution.</p></div></div></div>
+            <div class="slide"><h2>2. The 'Popular'</h2><blockquote>“What is essential... is the relations which define ‘popular culture’ in a continuing tension (relationship, influence and antagonism) to the dominant culture.”</blockquote><p>For Hall, "popular culture" is not a set of things, but a battlefield defined by the struggle between the power-bloc and "the people."</p></div>
+            <div class="slide"><h2>A Struggle Over Definition</h2><div class="slide-columns"><div class="slide-column containment"><h3>Power-Bloc Definition</h3><p>Kimmel's speech is framed as dangerous, illegitimate, and outside the bounds of acceptable broadcast content. The goal is to <strong>contain</strong> it.</p></div><div class="slide-column resistance"><h3>Popular Forces' Definition</h3><p>Kimmel's speech is framed as necessary satire, a core part of a democratic tradition. The goal is to <strong>resist</strong> containment.</p></div></div></div>
+            <div class="slide"><h2>3. The Dialectic of Struggle</h2><blockquote>“We should always start here: with the double-stake in popular culture, the double movement of containment and resistance, which is always inevitably inside it.”</blockquote><p>Culture is a constant push-and-pull. The powerful try to contain and manage culture, while popular forces resist and push back.</p></div>
+            <div class="slide"><h2>Mechanisms of the Struggle</h2><div class="slide-columns"><div class="slide-column containment"><h3>Mechanisms of Containment</h3><ul><li><strong>Ban/Proscription:</strong> Affiliate blackouts.</li><li><strong>Policing:</strong> FCC threats.</li><li><strong>Incorporation:</strong> Framing Kimmel as an out-of-touch elite.</li></ul></div><div class="slide-column resistance"><h3>Mechanisms of Resistance</h3><ul><li><strong>Viral Bypass:</strong> Using YouTube to circumvent the ban.</li><li><strong>Appropriation:</strong> Reframing the debate around the First Amendment.</li><li><strong>Coalition Building:</strong> Uniting entertainers and free-speech advocates.</li></ul></div></div></div>
+            <div class="slide"><h2>Modeling the Media Struggle</h2><p>Each media artifact can be modeled as a move of either <strong>Containment</strong> or <strong>Resistance</strong>. Click any item for a detailed analysis.</p><div class="slide-columns" id="timeline-pres-container"><div class="slide-column containment"><h3>CONTAINMENT</h3></div><div class="slide-column resistance"><h3>RESISTANCE</h3></div></div></div>
+            <div class="slide"><h2>Why 'Popular Culture' Matters</h2><blockquote>“Popular culture is one of the sites where this struggle for and against a culture of the powerful is engaged: it is also the stake to be won or lost in that struggle. It is the arena of consent and resistance.”</blockquote></div>
+        </div>
+        <div class="presentation-ui">
+            <button class="exit-btn" id="exit-pres">Exit</button>
+            <div class="slide-counter" id="slide-counter">1 / 10</div>
+            <div>
+                <button class="nav-btn" id="prev-slide">&larr; Prev</button>
+                <button class="nav-btn" id="next-slide">Next &rarr;</button>
+            </div>
+        </div>
+        <div id="progress-bar"></div>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content" id="modal-content"></div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- DATA SOURCE ---
+        const sourceData = [
+            { id: "S03", date: "Sep 16", outlet: "Fox News", title: "Kimmel chokes up… never intended…", type: "containment", url: "https://www.foxnews.com/media/jimmy-kimmel-chokes-up-he-explains-kirk-comments-says-he-never-intended-mock-assassination", analysis: "This framing by a power-bloc outlet focuses on Kimmel's emotion, attempting to define his actions as a personal failing ('moral fault') rather than a political statement. It's a move of **incorporation**, neutralizing the radical critique by personalizing it." },
+            { id: "S01", date: "Sep 16", outlet: "Fox News", title: "Trump calls ABC support…", type: "containment", url: "https://www.foxnews.com/media/trump-calls-abcs-jimmy-kimmel-support-major-illegal-campaign-contribution-democrats", analysis: "A direct intervention from the apex of the power-bloc. This uses the mechanism of **policing**, framing Kimmel's speech not as satire but as an illegal 'campaign contribution.' It attempts to move the discourse from culture to criminality." },
+            { id: "S04", date: "Sep 17", outlet: "AP", title: "Suspension reaction", type: "resistance", url: "https://apnews.com/article/jimmy-kimmel-suspended-reaction-03c1ae9d16a4a47481e855de1668def3", analysis: "Legacy media reports on the widespread backlash, giving legitimacy to the counter-narrative. This is an act of **resistance** by amplifying the voices of the 'popular forces' and documenting the emerging coalition." },
+            { id: "S23", date: "Sep 17", outlet: "Fox News", title: "Kimmel slams FCC chair", type: "containment", url: "https://www.foxnews.com/media/jimmy-kimmel-late-night-return-slams-fcc-chair-free-speech-pivot", analysis: "The headline frames Kimmel's defense as an aggressive 'slam,' portraying him as a combatant against a legitimate state body. This works to delegitimize his resistance by framing it as an attack on 'institutional order' rather than a defense of rights." },
+            { id: "S21", date: "Sep 17", outlet: "Hollywood Reporter", title: "Industry & politicians react", type: "resistance", url: "https://www.hollywoodreporter.com/tv/tv-news/hollywood-politicians-react-jimmy-kimmel-live-suspension-1236374303/", analysis: "Documents the formation of the 'popular forces' as an alliance. By showing cross-ideological support, it resists the power-bloc's attempt to frame this as a purely partisan issue. This is **coalition building** as resistance." },
+            { id: "S02", date: "Sep 23", outlet: "CNN", title: "Monologue transcript", type: "resistance", url: "https://www.cnn.com/2025/09/24/business/monologue-transcript-kimmel-return", analysis: "The primary artifact of resistance. Kimmel **appropriates** the moment to reframe the event, articulating his actions not as a mistake but as a defense of the 'popular tradition' of satire against the power-bloc." },
+            { id: "S09", date: "Sep 23", outlet: "YouTube", title: "Kimmel return clip #1", type: "resistance", url: "https://www.youtube.com/watch?v=EHNYV71fKQ4", analysis: "A key mechanism of transformation: using a new apparatus to **bypass the ban/proscription** by the affiliates, demonstrating how popular forces can reroute distribution to resist containment." },
+            { id: "S05", date: "Sep 24", outlet: "CNN", title: "Ratings on return (6.3m)", type: "resistance", url: "https://www.cnn.com/2025/09/24/media/ratings-jimmy-kimmel-return-abc-broadcast", analysis: "The ratings are articulated as proof of the 'popular will,' using market logic as a weapon of resistance to validate Kimmel and reject the power-bloc's attempt at censorship." },
+            { id: "S08", date: "Sep 24", outlet: "Fox News", title: "Not good enough", type: "containment", url: "https://www.foxnews.com/media/conservatives-say-kimmels-attempt-clarify-charlie-kirk-comments-not-good-enough", analysis: "A classic move of **containment** that refuses to accept the reframing. It attempts to maintain the 'moral fault' narrative and rejects Kimmel's re-articulation of the event." }
+        ];
+
+        // --- THEME MANAGER ---
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        const body = document.getElementById('body');
+
+        function applyTheme(theme) {
+            body.className = `theme-${theme}`;
+            localStorage.setItem('selectedTheme', theme);
+            themeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+        }
+
+        themeButtons.forEach(button => {
+            button.addEventListener('click', () => applyTheme(button.dataset.theme));
+        });
+        applyTheme(localStorage.getItem('selectedTheme') || 'light');
+
+        // --- PRESENTATION MANAGER ---
+        const startBtn = document.getElementById('start-pres');
+        const exitBtn = document.getElementById('exit-pres');
+        const presView = document.getElementById('presentation-view');
+        const slides = document.querySelectorAll('.slide');
+        const nextBtn = document.getElementById('next-slide');
+        const prevBtn = document.getElementById('prev-slide');
+        const slideCounter = document.getElementById('slide-counter');
+        const progressBar = document.getElementById('progress-bar');
+        
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+            currentSlide = index;
+            slideCounter.textContent = `${index + 1} / ${totalSlides}`;
+            progressBar.style.width = `${((index + 1) / totalSlides) * 100}%`;
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === totalSlides - 1;
+        }
+
+        function enterPresentation() {
+            presView.classList.add('visible');
+            showSlide(0);
+        }
+
+        function exitPresentation() {
+            presView.classList.remove('visible');
+        }
+
+        startBtn.addEventListener('click', enterPresentation);
+        exitBtn.addEventListener('click', exitPresentation);
+        nextBtn.addEventListener('click', () => { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); });
+        prevBtn.addEventListener('click', () => { if (currentSlide > 0) showSlide(currentSlide - 1); });
+
+        document.addEventListener('keydown', (e) => {
+            if (presView.classList.contains('visible')) {
+                if (e.key === 'ArrowRight') nextBtn.click();
+                if (e.key === 'ArrowLeft') prevBtn.click();
+                if (e.key === 'Escape') exitBtn.click();
+            }
+        });
+
+        // --- MODAL MANAGER ---
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContent = document.getElementById('modal-content');
+
+        function openModal(sourceId) {
+            const data = sourceData.find(d => d.id === sourceId);
+            if (!data) return;
+            
+            modalContent.innerHTML = `
+                <h3>${data.outlet}</h3>
+                <p><em>"${data.title}"</em></p>
+                <h4>Stuart Hall Analysis:</h4>
+                <p>${data.analysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
+                <a href="${data.url}" target="_blank" rel="noopener noreferrer">View Original Source</a>
+                <button class="modal-close-btn">Close</button>
+            `;
+            modalOverlay.classList.add('visible');
+            modalContent.querySelector('.modal-close-btn').addEventListener('click', closeModal);
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('visible');
+        }
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+        
+        // --- TIMELINE BUILDER ---
+        const presTimelineContainer = document.getElementById('timeline-pres-container');
+        const containmentCol = presTimelineContainer.querySelector('.containment');
+        const resistanceCol = presTimelineContainer.querySelector('.resistance');
+        
+        sourceData.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'timeline-item-pres';
+            el.innerHTML = `<span class="outlet ${item.type}">${item.outlet}:</span> ${item.title}`;
+            // Attach click listener that calls the Modal Manager's function
+            el.addEventListener('click', () => openModal(item.id));
+            
+            if (item.type === 'containment') {
+                containmentCol.appendChild(el);
+            } else {
+                resistanceCol.appendChild(el);
+            }
+        });
+
+    });
+    </script>
+</body>
+</html>

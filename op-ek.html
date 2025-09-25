@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operative Ekphrasis: Ecology of a Jungle</title>
+    <style>
+        /* --- Reset and Base Styles --- */
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --primary-color: #00aaff;
+            --primary-accent: #0077b3;
+            --note-bg: #1e1e1e;
+            --note-text: #b0b0b0;
+            --border-color: #333;
+            --positive-color: #2E7D32; /* Green */
+            --negative-color: #C62828; /* Red */
+            --sans-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --serif-font: "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif;
+            --mono-font: "SF Mono", "Menlo", "Consolas", "Courier New", monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--sans-font);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* --- Presentation Container --- */
+        main { width: 100%; height: 100%; position: relative; }
+
+        /* --- Slide Styles --- */
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 5vmin;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transform: scale(0.98);
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            z-index: 1;
+        }
+
+        .slide-content { width: 100%; max-width: 1100px; text-align: center; }
+        
+        /* --- Typography & Content --- */
+        h1, h2, h3 { font-family: var(--serif-font); font-weight: 600; line-height: 1.2; margin-bottom: 0.75em; }
+        h1 { font-size: clamp(2.5rem, 8vmin, 4.5rem); }
+        h2 { font-size: clamp(2rem, 6vmin, 3.5rem); }
+        h3 { font-size: clamp(1.5rem, 4vmin, 2.5rem); }
+        p { font-size: clamp(1rem, 2.5vmin, 1.2rem); margin-bottom: 1em; max-width: 80ch; margin-left:auto; margin-right:auto;}
+        strong, .highlight { color: var(--primary-color); }
+        blockquote { font-family: var(--serif-font); font-style: italic; border-left: 3px solid var(--primary-color); padding-left: 1.5em; margin: 2em auto; font-size: clamp(1.1rem, 3vmin, 1.5rem); }
+
+        /* --- Layout Helpers --- */
+        .two-columns { display: flex; flex-direction: column; gap: 2rem; text-align: left; margin-top: 2rem; }
+        @media (min-width: 768px) { .two-columns { flex-direction: row; } }
+        .two-columns > div { flex: 1; border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; background-color: rgba(255,255,255,0.03); }
+
+        /* --- Speaker Notes & UI --- */
+        .speaker-notes { display: none; position: fixed; bottom: 0; left: 0; width: 100%; max-height: 40vh; overflow-y: auto; background-color: var(--note-bg); color: var(--note-text); padding: 2em; border-top: 2px solid var(--border-color); z-index: 100; font-size: 0.9rem; line-height: 1.5; }
+        .speaker-notes h4 { font-family: var(--sans-font); text-transform: uppercase; letter-spacing: 1px; color: var(--primary-color); margin-bottom: 1em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5em; }
+        .speaker-notes p, .speaker-notes ul { font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .speaker-notes ul { list-style-position: inside; padding-left: 1em; }
+        .controls, .slide-counter, .notes-toggle { position: fixed; z-index: 10; -webkit-user-select: none; user-select: none; }
+        .controls { bottom: 2vmin; right: 2vmin; display: flex; gap: 0.5rem; }
+        .controls button { background-color: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); color: var(--text-color); font-size: 1.5rem; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; transition: background-color 0.2s, transform 0.2s; }
+        .controls button:hover { background-color: var(--primary-accent); }
+        .slide-counter { bottom: 3.5vmin; left: 3.5vmin; font-size: 1rem; background-color: rgba(0,0,0,0.3); padding: 0.5em 1em; border-radius: 20px; }
+        .notes-toggle { top: 2vmin; right: 2vmin; background-color: transparent; border: none; color: #888; font-size: 0.8rem; cursor: pointer; padding: 0.5em; }
+        .notes-toggle:hover { color: var(--text-color); }
+        
+        /* --- NEW: INTERACTIVE & ECOLOGY STYLES --- */
+        .loop-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            text-align: left;
+            width: 100%;
+        }
+        .loop-card {
+            background: var(--note-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        .loop-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--primary-color); }
+        .loop-card p { font-size: 0.9rem; margin-bottom: 0.2rem; }
+        
+        .interaction-matrix {
+            font-family: var(--mono-font);
+            border-collapse: collapse;
+            margin: 2rem auto;
+            font-size: clamp(0.6rem, 1.5vw, 0.9rem);
+        }
+        .interaction-matrix th, .interaction-matrix td {
+            border: 1px solid var(--border-color);
+            padding: 0.5em;
+            text-align: center;
+            min-width: 40px;
+        }
+        .interaction-matrix th.header-row { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); }
+        .interaction-matrix .editable { cursor: pointer; transition: background-color 0.2s; font-weight: bold; }
+        .interaction-matrix .editable[data-value="+1"] { color: var(--positive-color); }
+        .interaction-matrix .editable[data-value="-1"] { color: var(--negative-color); }
+        .interaction-matrix .editable:hover { background-color: var(--primary-accent); }
+
+        .ascii-flow {
+            font-family: var(--mono-font);
+            background: var(--note-bg);
+            padding: 2em;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            display: inline-block;
+            margin: 1rem auto;
+            text-align: left;
+            font-size: clamp(0.7rem, 2vw, 1rem);
+            line-height: 1.4;
+        }
+
+        .card-deck {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            width: 100%;
+        }
+        .species-card {
+            background: var(--note-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .species-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .species-card h3 { font-family: var(--serif-font); font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1rem; }
+        .species-card p { font-size: 0.9rem; margin-bottom: 1rem; }
+        .species-card .field-note { font-family: var(--serif-font); font-style: italic; font-size: 0.95rem; border-top: 1px solid var(--border-color); padding-top: 1rem; color: var(--note-text); }
+    </style>
+</head>
+<body>
+
+    <main id="presentation">
+        <!-- SLIDE 1: Title -->
+        <section class="slide" id="slide-1">
+            <div class="slide-content"><h1>Operative Ekphrasis<br>& Generative AI</h1><p>A New Mode of Creative Production</p></div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>Welcome. Today we're exploring a new framework for understanding the creative output of Generative AI. The source text argues that these tools have produced a "lush jungle of content." To navigate this jungle, we need a new concept: <strong>Operative Ekphrasis</strong>.</p></div>
+        </section>
+
+        <!-- SLIDE 2: The Collapse -->
+        <section class="slide" id="slide-2">
+            <div class="slide-content"><h2>The Collapse</h2><p><strong>Operative Ekphrasis</strong> is when the traditional act of describing an image in words is <strong>reversed or collapsed.</strong></p><h3>Text ⇄ Image</h3><p>This reflects a fundamental "collapse of the text/image distinction" under multimodal AI. The boundary becomes a loop.</p></div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>Let's define our core term. Classical ekphrasis is the verbal description of visual art. <strong>Operative Ekphrasis</strong> is different. It's not about description; it's about <em>generation</em>. The line between them dissolves. As the source text says, "Ekphrasis is both effectuated and defied by machinery." The machine doesn't just describe, it *does*.</p></div>
+        </section>
+
+        <!-- SLIDE 3: Plenitude vs Scarcity -->
+        <section class="slide" id="slide-3">
+            <div class="slide-content"><h2>Plenitude vs. Scarcity</h2><p>This new era is defined by <strong>plenitude</strong>—an overwhelming abundance of content. This challenges traditional value, which was based on <strong>scarcity</strong> and Walter Benjamin's concept of <strong>"aura"</strong>.</p><blockquote>"What value can a unique image hold if anybody can use their phone to make a similar unique image in just a few seconds?"</blockquote></div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>Here we get to the aesthetic and economic consequences. Generative AI creates what the text calls a "generative jungle" of infinite, unique-but-not-scarce images. This leads to phenomena like "AI Slop." The quote captures the core problem. If uniqueness is easy to achieve, it ceases to be a primary source of value. The new scarce resource is no longer the unique object, but rather human attention, curation, and context.</p></div>
+        </section>
+
+        <!-- SLIDE 4: New Criteria -->
+        <section class="slide" id="slide-4">
+            <div class="slide-content"><h2>New Criteria for a New Art</h2><p>In an age of plenitude, "does it look good?" is not enough. We need new frameworks for evaluation, focusing on process and context.</p><p><strong class="highlight">Novelty, Coherence, Style, Intention, Impact, Traceability, Control</strong></p></div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>If uniqueness and traditional craft are no longer reliable markers of value, how do we judge this new work? The paper proposes a multi-dimensional approach. We need to ask different questions, shifting the focus from the artifact alone to the entire system of its creation and reception.</p></div>
+        </section>
+        
+        <!-- SLIDE 5: Welcome to the Jungle -->
+        <section class="slide" id="slide-5">
+            <div class="slide-content"><h2>Welcome to the Jungle</h2><blockquote>"We now face a jungle that is at once fertile and impenetrable: a jungle of ideas that can confuse as much as inspire."</blockquote><p>To navigate this, we need an ecological model. We must map the feedback loops that govern this new environment.</p></div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>This metaphor of the jungle is our entry point into a deeper analysis. It perfectly captures the current moment: fertile, chaotic, and easy to get lost in. To truly understand it, we can't just look at individual "plants" or artworks. We must study the underlying system: the soil, the rain, the feedback cycles. We need to become ecologists of this digital jungle.</p></div>
+        </section>
+        
+        <!-- SLIDE 6: Amplifying Loops -->
+        <section class="slide" id="slide-6">
+            <div class="slide-content"><h2>The Ecology, Part 1: Amplifying Loops</h2><p>These are the engines of virality, the positive feedback loops that cause trends to explode.</p>
+                <div class="loop-container">
+                    <div class="loop-card"><h3>1. Trend Echo</h3><p>Motifs are rapidly cloned across clusters, languages, and formats.</p></div>
+                    <div class="loop-card"><h3>2. Hype-Backlash Oscillator</h3><p>Fast ascent attracts praise, which in turn attracts parody and call-outs, creating a chaotic cycle.</p></div>
+                    <div class="loop-card"><h3>3. Data Recursion</h3><p>Platforms feed popular content back into their models, reinforcing what's already successful.</p></div>
+                    <div class="loop-card"><h3>4. Algorithmic Predator</h3><p>Optimizers lock onto a few winning patterns, starving diversity.</p></div>
+                    <div class="loop-card"><h3>5. Collab Cascade</h3><p>Successful collaborations spawn more collaborations, concentrating reach.</p></div>
+                    <div class="loop-card"><h3>6. Novelty Shock</h3><p>A genuinely new aesthetic creates a short, intense burst of exploration and copycats.</p></div>
+                </div>
+            </div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>Let's map the jungle's mechanics. First, the amplifiers. Think of these as the fast-growing vines. The Trend Echo is the most basic: a sound, a caption format, a filter gets copied. Data Recursion is more insidious: the platform itself learns to prefer the echo, creating a self-fulfilling prophecy. The Algorithmic Predator is when the system becomes brutally efficient, funneling all resources to a handful of proven winners.</p></div>
+        </section>
+        
+        <!-- SLIDE 7: Dampening Loops -->
+        <section class="slide" id="slide-7">
+            <div class="slide-content"><h2>The Ecology, Part 2: Dampening Loops</h2><p>These are the forces of friction, curation, and decay that slow things down and provide stability.</p>
+                <div class="loop-container">
+                    <div class="loop-card"><h3>7. Curatorial Brake</h3><p>Human editors, juries, and lists apply qualitative judgment.</p></div>
+                    <div class="loop-card"><h3>8. Provenance Spiral</h3><p>Tools that trace an artwork's origin (like C2PA) add value and friction.</p></div>
+                    <div class="loop-card"><h3>9. Moderation Drag</h3><p>Policy enforcement slows or stops the spread of flagged content.</p></div>
+                    <div class="loop-card"><h3>10. Attention Budgeting</h3><p>Users and apps set limits on consumption (e.g., screen time).</p></div>
+                    <div class="loop-card"><h3>11. Frictional UX</h3><p>Small design hurdles ("Are you sure you want to post?") slow knee-jerk reactions.</p></div>
+                    <div class="loop-card"><h3>12. Slow-Release Rituals</h3><p>Scheduled drops and premieres create anticipation instead of instant saturation.</p></div>
+                </div>
+            </div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>Now for the counter-forces, the brakes. The Curatorial Brake is the classic human touch: an editor's pick, a festival selection. Provenance is a technical solution: a "verified source" badge that makes users pause and trust. The others are often invisible frictions: a slight delay in posting, a moderation queue, or simply the user getting tired and closing the app. These loops are essential for preventing the jungle from becoming a monoculture.</p></div>
+        </section>
+        
+        <!-- SLIDE 8: Resonance Model -->
+        <section class="slide" id="slide-8">
+            <div class="slide-content"><h2>Resonance Model: How Loops Interact</h2><p>No loop acts in isolation. They amplify or dampen each other. Here is a model of their interactions. <br><strong class="highlight">(Click cells to edit values.)</strong></p>
+                <table class="interaction-matrix" id="interaction-matrix-table">
+                    <thead>
+                        <tr><th></th><th class="header-row">1. Trend Echo</th><th class="header-row">2. Hype↔Backlash</th><th class="header-row">3. Data Recursion</th><th class="header-row">4. Algo Predator</th><th class="header-row">5. Collab Cascade</th><th class="header-row">6. Novelty Shock</th><th class="header-row">7. Curatorial</th><th class="header-row">8. Provenance</th><th class="header-row">9. Moderation</th><th class="header-row">10. Attention</th><th class="header-row">11. Friction</th><th class="header-row">12. Slow-Release</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1. Trend Echo</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td></tr>
+                        <tr><td>2. Hype↔Backlash</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td></tr>
+                        <tr><td>3. Data Recursion</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td></tr>
+                        <tr><td>4. Algo Predator</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td></tr>
+                        <tr><td>5. Collab Cascade</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td></tr>
+                        <tr><td>6. Novelty Shock</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td></tr>
+                        <tr><td>7. Curatorial</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td></tr>
+                        <tr><td>8. Provenance</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td></tr>
+                        <tr><td>9. Moderation</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td></tr>
+                        <tr><td>10. Attention</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td></tr>
+                        <tr><td>11. Friction</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td></tr>
+                        <tr><td>12. Slow-Release</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="-1">-1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="+1">+1</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td><td class="editable" data-value="0">0</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>This is the core of the model. This matrix shows how each loop affects every other loop. Read it as: Rows influence Columns. For example, look at Row 1, Column 2. The value is +1. This means the Trend Echo *amplifies* the Hype-Backlash cycle by providing it more fuel. Conversely, look at Row 7, Column 1. -1. The Curatorial Brake *dampens* the Trend Echo. This tool allows us to visualize the entire system's complexity. Play with the values. What happens if Moderation gets stronger at dampening Hype? Or if Provenance gets better at slowing the Algo Predator?</p></div>
+        </section>
+
+        <!-- SLIDE 9: System Dynamics -->
+        <section class="slide" id="slide-9">
+            <div class="slide-content"><h2>System Dynamics</h2><p>These interactions create predictable patterns: peaks, oscillations, and dead zones.</p>
+            <pre class="ascii-flow">
+ [Novelty Shock] ──► [Trend Echo] ──► [Data Recursion]
+        │                 │                   │
+        └────► [Collab Cascade] ──────────────┘
+                     │
+                 [Algo Predator]
+                     │
+                 (peaks)
+                     ▼
+               [Hype↔Backlash]
+              ▲      │       ▼
+     [Curatorial]  [Provenance]  [Friction/Attention/Slow-Release]
+          └───────────────┬───────────────┘
+                          ▼
+                     (troughs)
+            </pre>
+            <p><strong class="highlight">Super-Blooms:</strong> Occur when Novelty, Trend Echo, and Collabs align before curation can catch up.</p>
+            <p><strong class="highlight">Dead Zones:</strong> Occur when curation, provenance, and attention limits are all high.</p>
+            </div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>This flow chart simplifies the matrix into a narrative. A new idea—a Novelty Shock—kicks things off. It feeds the Trend Echo and Collab Cascade, which are then supercharged by Data Recursion and the Algo Predator, leading to a massive peak or "super-bloom." But this peak creates its own backlash. The system then oscillates until the dampening forces—curation, user friction, and simple fatigue—take over, leading to a trough. This is the life cycle of a trend in the jungle.</p></div>
+        </section>
+
+        <!-- SLIDE 10: Externalities & Interventions -->
+        <section class="slide" id="slide-10">
+            <div class="slide-content"><h2>Externalities & Interventions</h2><p>These loops aren't neutral. They have real-world consequences and can be intentionally re-engineered.</p>
+                <div class="two-columns">
+                    <div>
+                        <h3>Externalities (Side-Effects)</h3>
+                        <p><strong>Trend Echo → Dataset Pollution</strong><br>Models trained on echoes become less diverse.</p>
+                        <p><strong>Algo Predator → Market Capture</strong><br>New creators can't break through; creativity starves.</p>
+                        <p><strong>Hype-Backlash → Psychosocial Strain</strong><br>Causes harassment waves and reputation whiplash.</p>
+                    </div>
+                    <div>
+                        <h3>Interventions (Engineering)</h3>
+                        <p><strong>Code → Diversity-aware Bandit</strong><br>Algorithmically reward novelty, not just clicks.</p>
+                        <p><strong>Norms → Curator Checksums</strong><br>Creator co-ops create shared standards and audits.</p>
+                        <p><strong>Market → Long-horizon Bounties</strong><br>Incentivize retention and quality, not just viral spikes.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>Why does this model matter? Because these loops have consequences beyond the platform. They pollute our shared information space, concentrate market power, and create real stress for creators. But the good news is that we can intervene. We can engineer better systems. We can write code that values diversity, build community norms that promote health, and design market incentives that reward long-term value over short-term hype. This is a design problem.</p></div>
+        </section>
+
+        <!-- SLIDE 11: Field Notes -->
+        <section class="slide" id="slide-11">
+            <div class="slide-content"><h2>Field Notes from the Jungle</h2><p>To understand the ecology, we must also identify its inhabitants. Here are a few species cards from our field research.</p>
+                <div class="card-deck">
+                    <div class="species-card">
+                        <h3>Template Lichen</h3>
+                        <p>Clings to any surface (news, pets, recipes), secreting a passable aesthetic. It spreads by flattering the substrate—everything looks good in its beige glow until you forget what bark looked like.</p>
+                        <p class="field-note"><strong>Habitat:</strong> The caption box<br><strong>Diet:</strong> Trending prompts</p>
+                    </div>
+                    <div class="species-card">
+                        <h3>Curator Hawk</h3>
+                        <p>Slow circles; once per day, dives to lift one piece out of the swarm. When it lands, the field hushes; the chosen work wears a shadow of obligation, as if knighted and burdened all at once.</p>
+                        <p class="field-note"><strong>Habitat:</strong> Juries, pinboards<br><strong>Diet:</strong> Rarity, context</p>
+                    </div>
+                    <div class="species-card">
+                        <h3>Shadow-Ban Fog</h3>
+                        <p>Rolls in silently; metrics damp by half; exits without apology. You shout across the valley; only your own echo returns. Somewhere, a light blinks—green—but you can’t find the switch.</p>
+                        <p class="field-note"><strong>Habitat:</strong> Edges of the feed<br><strong>Diet:</strong> Policy violations</p>
+                    </div>
+                    <div class="species-card">
+                        <h3>Archivist Tortoise</h3>
+                        <p>Moves slowly, but everything it touches keeps its name. Years later, you follow its tracks and discover your work, still warm under the shell of a checksum.</p>
+                        <p class="field-note"><strong>Habitat:</strong> Personal sites, IPFS<br><strong>Diet:</strong> Metadata</p>
+                    </div>
+                </div>
+            </div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>Finally, let's get personal. The jungle isn't just abstract loops; it's made of tangible phenomena we all recognize. The "Template Lichen" is that aesthetic that's suddenly everywhere. The "Curator Hawk" is the force that plucks something from obscurity. The "Shadow-Ban Fog" is that chilling, unexplained drop in reach. And the "Archivist Tortoise" represents the slow, deliberate work of preservation. These metaphors help us connect the high-level model to our lived experience of these platforms.</p></div>
+        </section>
+
+        <!-- SLIDE 12: Conclusion -->
+        <section class="slide" id="slide-12">
+            <div class="slide-content"><h2>Designing a Better Jungle</h2><p>Operative Ekphrasis has unleashed a powerful, chaotic, and fertile creative force.</p><p>By understanding its ecology—the loops, the resonances, the inhabitants—we move from being passive explorers to active gardeners. We can design for resilience, diversity, and health.</p><blockquote>The question is not whether the jungle will grow, but what kind of jungle we choose to cultivate.</blockquote></div>
+            <div class="speaker-notes"><h4>SPEAKER NOTES</h4><p>To conclude, we've journeyed from a core concept—Operative Ekphrasis—to a complex ecological model of its effects in the wild. This model shows us that the chaotic jungle is not entirely random. It has rules, and those rules can be understood and even redesigned. We have a choice. We can let the jungle grow into a tangled monoculture dominated by algorithmic predators, or we can actively cultivate it into a diverse, healthy, and sustainable ecosystem. Thank you.</p></div>
+        </section>
+
+    </main>
+
+    <!-- UI Elements -->
+    <div class="slide-counter" id="slide-counter">1 / 12</div>
+    <div class="controls">
+        <button id="prev-btn">‹</button>
+        <button id="next-btn">›</button>
+    </div>
+    <div class="notes-toggle" id="notes-toggle-btn">Press 'N' for Notes</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const notesToggleBtn = document.getElementById('notes-toggle-btn');
+            const slideCounter = document.getElementById('slide-counter');
+            const matrixCells = document.querySelectorAll('#interaction-matrix-table .editable');
+
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+            
+            // --- Presentation Logic ---
+            const updatePresentation = () => {
+                slides.forEach((slide, index) => {
+                    slide.classList.toggle('active', index === currentSlide);
+                });
+                
+                const currentNotes = slides[currentSlide].querySelector('.speaker-notes');
+                document.querySelectorAll('.speaker-notes').forEach(note => note.style.display = 'none');
+                if (currentNotes && notesVisible) {
+                    currentNotes.style.display = 'block';
+                }
+
+                slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+                window.location.hash = `slide-${currentSlide + 1}`;
+            };
+
+            const goToSlide = (slideNumber) => {
+                currentSlide = slideNumber;
+                updatePresentation();
+            };
+            const goToNext = () => { currentSlide = (currentSlide + 1) % totalSlides; updatePresentation(); };
+            const goToPrev = () => { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updatePresentation(); };
+
+            // --- Speaker Notes Logic ---
+            let notesVisible = false;
+            const toggleNotes = () => {
+                notesVisible = !notesVisible;
+                notesToggleBtn.textContent = notesVisible ? "Press 'N' to Hide Notes" : "Press 'N' for Notes";
+                updatePresentation();
+            };
+
+            // --- Interactive Matrix Logic ---
+            const cycleValue = (cell) => {
+                const currentValue = cell.dataset.value;
+                let nextValue;
+                if (currentValue === '0') nextValue = '+1';
+                else if (currentValue === '+1') nextValue = '-1';
+                else nextValue = '0';
+                
+                cell.dataset.value = nextValue;
+                cell.textContent = nextValue;
+            };
+
+            matrixCells.forEach(cell => {
+                cell.addEventListener('click', () => cycleValue(cell));
+            });
+
+            // --- Event Listeners ---
+            nextBtn.addEventListener('click', goToNext);
+            prevBtn.addEventListener('click', goToPrev);
+            notesToggleBtn.addEventListener('click', toggleNotes);
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'TD') return; // Don't navigate slides if editing matrix
+                if (e.key === 'ArrowRight' || e.key === ' ') goToNext();
+                else if (e.key === 'ArrowLeft') goToPrev();
+                else if (e.key.toLowerCase() === 'n') toggleNotes();
+            });
+
+            // --- Initial Setup ---
+            const initialSlide = parseInt(window.location.hash.replace('#slide-', ''), 10) - 1;
+            if (!isNaN(initialSlide) && initialSlide >= 0 && initialSlide < totalSlides) {
+                currentSlide = initialSlide;
+            }
+            updatePresentation();
+        });
+    </script>
+</body>
+</html>

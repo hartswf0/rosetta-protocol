@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sharpen & Hone — Index + Viewer</title>
+  <meta name="description" content="Mobile-first, single-file index & viewer for many iframes. Canadian DIY Mission Control aesthetic. Offline-ready & print-friendly." />
+  <style>
+    /* =====================
+       BRAND: Sharpen & Hone
+       Canadian DIY Mission Control × Granite Monument
+       ===================== */
+    :root {
+      /* Neutral granite + blueprint accents */
+      --granite-0: #0e0f11; /* near-black */
+      --granite-1: #1a1c20; /* base */
+      --granite-2: #2a2d33; /* elevated */
+      --granite-3: #3c4049; /* lines */
+      --paper: #faf7f1;     /* parchment */
+      --grid: rgba(0,0,0,.06);
+      --tape: #d4c9a9;
+      --accent-time: #61646b;         /* cool granite */
+      --accent-space: #e31937;        /* maple red */
+      --accent-signal: #ffda00;       /* signal yellow */
+
+      --radius: 16px;
+      --shadow: 0 1px 0 rgba(0,0,0,.08), 0 6px 16px rgba(0,0,0,.12);
+      --pad: 12px;
+      --gap: 10px;
+
+      /* Dynamic: bias mix (0 = Monument/Time/serif, 100 = Broadcast/Space/sans) */
+      --bias: 40; /* default */
+      --fg: color-mix(in oklab, var(--paper) 12%, black 88%);
+      --bg: color-mix(in oklab, var(--paper) 88%, var(--granite-1) 12%);
+      --card-bg: color-mix(in oklab, white 82%, var(--granite-2) 18%);
+      --card-fg: #17181a;
+      --ring: color-mix(in oklab, var(--accent-time) calc(100% - var(--bias)*1%), var(--accent-space) calc(var(--bias)*1%));
+      --ring-2: color-mix(in oklab, var(--accent-time) calc(100% - var(--bias)*1%), var(--accent-signal) calc(var(--bias)*1%));
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --serif: ui-serif, Charter, "Iowan Old Style", Georgia, Cambria, "Times New Roman", Times, serif;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #111315; --card-bg: #171a1f; --card-fg: #e7e8ea; --fg: #eef0f2; }
+      body { background-image: none; }
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0; color: var(--fg); background: var(--bg);
+      font-family: var(--sans);
+      line-height: 1.35;
+      /* Parchment + blueprint grid */
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 32px 32px, 32px 32px;
+      background-attachment: fixed;
+    }
+
+    /* Bias-driven typography switch */
+    .time-face { font-family: var(--serif); letter-spacing: .1px; }
+    .space-face { font-family: var(--sans); }
+
+    .app {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      min-height: 100dvh;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(8px);
+      background: color-mix(in oklab, var(--bg) 70%, transparent 30%);
+      border-bottom: 1px dashed var(--ring);
+    }
+    .bar {
+      display: grid; gap: var(--gap);
+      grid-template-columns: 1fr auto auto auto;
+      align-items: center;
+      padding: 10px clamp(10px, 3vw, 24px);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .glyph {
+      width: 36px; height: 36px; border-radius: 50%;
+      background:
+        conic-gradient(from 0deg, var(--ring) 0 50%, var(--ring-2) 50% 100%);
+      box-shadow: inset 0 0 0 3px color-mix(in oklab, white 20%, var(--ring) 80%), var(--shadow);
+      position: relative;
+    }
+    .glyph::after {
+      content: ""; position: absolute; inset: 8px; border-radius: 50%;
+      border: 2px solid color-mix(in oklab, var(--ring) 60%, var(--ring-2) 40%);
+    }
+    .title { font-weight: 700; font-size: clamp(16px, 3.8vw, 20px); }
+    .subtitle { opacity: .8; font-size: 12px; }
+
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; justify-self: end; }
+    .control { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 999px; border: 1px solid var(--granite-3); background: color-mix(in oklab, var(--card-bg) 70%, transparent 30%);} 
+    .control label { font-size: 12px; opacity: .85; }
+    .control select, .control input[type="range"] { accent-color: var(--ring); }
+
+    nav.tools {
+      display: flex; gap: 10px; align-items: center; padding: 8px clamp(10px, 3vw, 24px);
+      border-bottom: 1px dashed var(--ring);
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid var(--ring); background: color-mix(in oklab, var(--ring) 12%, transparent 88%);
+      padding: 6px 10px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--fg);
+    }
+    .btn[aria-pressed="true"], .btn.primary { background: var(--ring); color: black; }
+
+    main {
+      display: grid; grid-template-columns: 1fr; gap: 10px; padding: 10px; max-width: 1200px; margin: 0 auto; width: 100%;
+    }
+
+    .grid {
+      display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    }
+
+    .card { position: relative; background: var(--card-bg); color: var(--card-fg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: clip; }
+    .card header { position: static; backdrop-filter: none; background: none; border-bottom: 1px dashed var(--granite-3); }
+    .card .cap { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px; }
+    .tagz { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { font-size: 11px; padding: 2px 6px; border: 1px solid var(--granite-3); border-radius: 999px; background: color-mix(in oklab, var(--ring) 8%, transparent 92%); }
+
+    .meterbar { display: flex; gap: 6px; align-items: center; font-size: 11px; }
+    .meter { flex: 1; height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--accent-time), var(--accent-signal), var(--accent-space)); position: relative; }
+    .meter::after { content: ""; position: absolute; top: -3px; height: 14px; width: 2px; background: #000; box-shadow: 0 0 0 2px #fff; left: 0; transform: translateX(var(--pct, 50%)); }
+
+    .card .body { display: grid; grid-template-rows: 140px auto; }
+    .thumb { position: relative; }
+    .thumb .tape { position: absolute; top: 6px; left: 6px; width: 58px; height: 14px; background: var(--tape); transform: rotate(-6deg); opacity: .9; box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+    .thumb .slot { position: absolute; inset: 0; display: grid; place-items: center; border-bottom: 1px dashed var(--granite-3); }
+    .thumb .slot span { font-family: var(--mono); font-size: 11px; opacity: .75; }
+
+    .sections { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 10px; }
+    .switch { display: inline-grid; grid-auto-flow: column; gap: 6px; background: color-mix(in oklab, var(--ring) 8%, transparent 92%); border: 1px solid var(--granite-3); padding: 3px; border-radius: 12px; }
+    .switch button { border: none; padding: 5px 8px; border-radius: 9px; background: transparent; font-weight: 600; cursor: pointer; }
+    .switch button[aria-pressed="true"] { background: var(--ring); color: black; }
+
+    .notes, .metrics { padding: 10px; font-size: 13px; }
+    .notes { display: none; }
+    .metrics dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; }
+    .metrics dt { font-family: var(--mono); opacity: .75; }
+    .metrics dd { margin: 0; font-weight: 600; }
+
+    .openbar { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 10px; gap: 8px; border-top: 1px dashed var(--granite-3); }
+    .mini { font-size: 11px; opacity: .7; }
+
+    .viewer {
+      position: fixed; inset: auto 0 0 0; background: color-mix(in oklab, var(--bg) 92%, #000 8%);
+      border-top: 2px solid var(--ring);
+      height: 48vh; display: none; grid-template-rows: auto 1fr; z-index: 70;
+    }
+    .viewer.docked { display: grid; }
+    .viewer .vbar { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px clamp(10px, 3vw, 24px); border-bottom: 1px dashed var(--ring); }
+    .viewer .label { font-weight: 700; }
+    .viewer iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
+    /* Print-friendly */
+    @media print {
+      header, nav.tools, .viewer { display: none !important; }
+      body { background: white; }
+      .card { break-inside: avoid; border: 1px solid #000; }
+      .grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app" data-bias="40" aria-live="polite">
+    <header aria-label="Sharpen & Hone Controls">
+      <div class="bar">
+        <div class="brand">
+          <div class="glyph" aria-hidden="true"></div>
+          <div>
+            <div class="title"><span class="time-face">Sharpen</span> & <span class="space-face">Hone</span> — Index</div>
+            <div class="subtitle">Canadian DIY Mission Control • Parchment × Blueprint grid • Duct tape borders</div>
+          </div>
+        </div>
+        <div class="controls" role="group" aria-label="Global controls">
+          <div class="control" title="Bias Dial: Monument ↔ Broadcast">
+            <label for="bias">Bias ⏳↔🌍</label>
+            <input id="bias" type="range" min="0" max="100" value="40" />
+          </div>
+          <div class="control">
+            <label for="sorter">Sort</label>
+            <select id="sorter" aria-label="Sort entries">
+              <option value="-time_bias">Time Bias (high→low)</option>
+              <option value="-space_bias">Space Bias (high→low)</option>
+              <option value="-persistence">Persistence (high→low)</option>
+              <option value="-legibility_millennia">Legibility (high→low)</option>
+              <option value="title">Title (A→Z)</option>
+            </select>
+          </div>
+          <div class="control">
+            <label class="sr-only" for="q">Filter</label>
+            <input id="q" type="search" placeholder="Filter tags/title…" aria-label="Filter entries" />
+          </div>
+        </div>
+      </div>
+      <nav class="tools" aria-label="Viewer tools">
+        <button class="btn primary" id="dockBtn" aria-pressed="true">Dock Viewer</button>
+        <button class="btn" id="overlayBtn" aria-pressed="false">Overlay Viewer</button>
+        <button class="btn" id="clearBtn">Clear Viewer</button>
+        <button class="btn" id="fsBtn" title="Fullscreen viewer">Fullscreen</button>
+        <span class="mini" id="count"></span>
+      </nav>
+    </header>
+
+    <main>
+      <section class="grid" id="grid" aria-label="Index of entries"></section>
+    </main>
+
+    <section class="viewer docked" id="viewer" aria-label="Viewer panel" aria-live="polite">
+      <div class="vbar">
+        <div class="label" id="vlabel">Viewer: —</div>
+        <div class="vtools">
+          <button class="btn" id="undockBtn">Undock</button>
+          <button class="btn" id="closeViewer">Close</button>
+        </div>
+      </div>
+      <iframe id="vframe" title="Selected content"></iframe>
+    </section>
+  </div>
+
+  <script>
+  ;(() => {
+    const d = document;
+    const $ = sel => d.querySelector(sel);
+    const $$ = sel => [...d.querySelectorAll(sel)];
+
+    // Demo data — replace or extend inline; supports src OR srcdoc.
+    /** Each entry: {
+          id, title, tags:[], notes: string, metrics: {time_bias, space_bias, persistence, legibility_millennia},
+          src?: url, srcdoc?: string
+        }
+     */
+    const entries = [
+      {
+        id: 'volcano-folktale',
+        title: 'Volcano Warning Folktale',
+        tags: ['oral','legend','safety','folk-art'],
+        notes: 'Embed warning in emotionally sticky narrative; steward via ritual retellings; teach with call-and-response.',
+        metrics: { time_bias: .90, space_bias: .40, persistence: .80, legibility_millennia: .75 },
+        srcdoc: `<html><body style="font:14px/1.4 ui-sans-serif,system-ui; padding:1rem"><h2>Volcano Warning Folktale</h2><p>A minimal inline page demonstrating <em>srcdoc</em> loading. Works offline.</p><p>Try printing from the main shell for index cards.</p></body></html>`
+      },
+      {
+        id: 'stone-monopoly',
+        title: 'Egyptian Stone Monopoly',
+        tags: ['stone','hieroglyphics','time-bias','monument'],
+        notes: 'Monopoly of knowledge via difficult script; maintenance heavy; challenged by papyrus innovation.',
+        metrics: { time_bias: .95, space_bias: .10, persistence: .95, legibility_millennia: .10 },
+        srcdoc: `<html><body style="font:14px/1.6 Georgia,serif; padding:1rem; background:#f7f4eb"><h2>Egyptian Stone Monopoly</h2><p>Pyramids as devices emphasizing control over time. Priestly stewardship; economic drain as failure mode.</p></body></html>`
+      },
+      {
+        id: 'blueprint-broadcast',
+        title: 'Blueprint Broadcast Node',
+        tags: ['broadcast','grid','adapter'],
+        notes: 'Lightweight, distributable packets; rapid spread; higher appropriation risk; requires provenance markers.',
+        metrics: { time_bias: .25, space_bias: .88, persistence: .35, legibility_millennia: .55 },
+        srcdoc: `<html><body style="font:14px/1.5 system-ui; padding:1rem; background:radial-gradient(circle at 20% 10%,#e8f0ff, #d7e5ff)"><h2>Blueprint Broadcast Node</h2><p>Broadcast aesthetics; adaptable layouts; additive remix culture.</p></body></html>`
+      },
+      {
+        id: 'external-demo',
+        title: 'External URL Demo (example.org)',
+        tags: ['external','url'],
+        notes: 'Loads cross-origin URL (subject to CSP). Replace with your artifact URLs.',
+        metrics: { time_bias: .40, space_bias: .60, persistence: .50, legibility_millennia: .60 },
+        src: 'https://example.org/'
+      }
+    ];
+
+    // State
+    const state = {
+      bias: 40,
+      mode: 'docked', // or 'overlay'
+      filter: '',
+      sort: '-time_bias',
+      activeId: null,
+      showSection: Object.fromEntries(entries.map(e => [e.id, 'metrics']))
+    };
+
+    // Restore from localStorage if available
+    try {
+      const saved = JSON.parse(localStorage.getItem('sh-index-state')||'null');
+      if (saved) Object.assign(state, saved);
+    } catch {}
+
+    // Apply bias to CSS
+    const applyBias = () => {
+      const root = d.documentElement;
+      root.style.setProperty('--bias', state.bias);
+      $('#app').setAttribute('data-bias', String(state.bias));
+      // Typography crossfade via body classes
+      const body = d.body;
+      body.classList.toggle('time-face', state.bias < 50);
+      body.classList.toggle('space-face', state.bias >= 50);
+    };
+
+    // Render count helper
+    const updateCount = (n) => { $('#count').textContent = `${n} item${n===1?'':'s'}`; };
+
+    // Sort utility
+    const sorters = {
+      'title': (a,b) => a.title.localeCompare(b.title),
+      '-time_bias': (a,b) => b.metrics.time_bias - a.metrics.time_bias,
+      '-space_bias': (a,b) => b.metrics.space_bias - a.metrics.space_bias,
+      '-persistence': (a,b) => b.metrics.persistence - a.metrics.persistence,
+      '-legibility_millennia': (a,b) => b.metrics.legibility_millennia - a.metrics.legibility_millennia,
+    };
+
+    // Render grid
+    const render = () => {
+      const grid = $('#grid');
+      const q = state.filter.toLowerCase();
+      const filtered = entries.filter(e =>
+        !q || e.title.toLowerCase().includes(q) || e.tags.some(t => t.toLowerCase().includes(q))
+      ).sort(sorters[state.sort]||sorters['title']);
+
+      grid.innerHTML = '';
+      for (const e of filtered) grid.appendChild(card(e));
+      updateCount(filtered.length);
+      applyBias();
+      persist();
+    };
+
+    const toPct = v => `${Math.round(v*100)}%`;
+
+    const card = (e) => {
+      const c = d.createElement('article');
+      c.className = 'card'; c.setAttribute('data-id', e.id);
+      c.innerHTML = `
+        <header>
+          <div class="cap">
+            <div>
+              <div class="title">${e.title}</div>
+              <div class="tagz" aria-label="Tags">${e.tags.map(t=>`<span class="tag">#${t}</span>`).join('')}</div>
+            </div>
+            <div class="meterbar" title="Time↔Space mix">
+              <span>⏳</span>
+              <div class="meter" style="--pct:${toPct(e.metrics.space_bias)}"></div>
+              <span>🌍</span>
+            </div>
+          </div>
+        </header>
+        <div class="body">
+          <div class="thumb" role="img" aria-label="preview">
+            <div class="tape" aria-hidden="true"></div>
+            <div class="slot"><span>tap to open in viewer</span></div>
+          </div>
+          <div class="sections">
+            <div class="switch" role="tablist" aria-label="Card sections">
+              <button class="sbtn" data-section="metrics" aria-pressed="${state.showSection[e.id]==='metrics'}">Metrics</button>
+              <button class="sbtn" data-section="notes" aria-pressed="${state.showSection[e.id]==='notes'}">Notes</button>
+            </div>
+            <button class="btn open" aria-label="Open ${e.title} in viewer">Open</button>
+          </div>
+          <div class="metrics" ${state.showSection[e.id]==='metrics'?'' : 'style="display:none"'}>
+            <dl>
+              <dt>time_bias</dt><dd>${e.metrics.time_bias.toFixed(2)}</dd>
+              <dt>space_bias</dt><dd>${e.metrics.space_bias.toFixed(2)}</dd>
+              <dt>persistence</dt><dd>${e.metrics.persistence.toFixed(2)}</dd>
+              <dt>legibility</dt><dd>${e.metrics.legibility_millennia.toFixed(2)}</dd>
+            </dl>
+          </div>
+          <div class="notes" ${state.showSection[e.id]==='notes'?'' : 'style="display:none"'}>
+            ${escapeHTML(e.notes)}
+          </div>
+          <div class="openbar">
+            <div class="mini">${e.src ? 'URL' : 'srcdoc'} • ${e.tags.map(t=>'#'+t).join(' ')}</div>
+            <button class="btn open">Open</button>
+          </div>
+        </div>
+      `;
+
+      // Wiring
+      c.querySelector('.thumb').addEventListener('click', () => openInViewer(e));
+      c.querySelectorAll('.open').forEach(btn => btn.addEventListener('click', () => openInViewer(e)));
+      c.querySelectorAll('.sbtn').forEach(btn => btn.addEventListener('click', (ev) => {
+        const sec = ev.currentTarget.getAttribute('data-section');
+        state.showSection[e.id] = sec;
+        c.querySelector('.metrics').style.display = sec==='metrics' ? '' : 'none';
+        c.querySelector('.notes').style.display = sec==='notes' ? '' : 'none';
+        c.querySelectorAll('.sbtn').forEach(b => b.setAttribute('aria-pressed', String(b===ev.currentTarget)));
+        persist();
+      }));
+
+      return c;
+    };
+
+    const escapeHTML = (str='') => str.replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]));
+
+    // Viewer controls
+    const viewer = $('#viewer');
+    const vframe = $('#vframe');
+    const vlabel = $('#vlabel');
+
+    const openInViewer = (e) => {
+      state.activeId = e.id;
+      vlabel.textContent = `Viewer: ${e.title}`;
+      if (e.srcdoc) vframe.srcdoc = e.srcdoc; else vframe.src = e.src;
+      viewer.classList.add('docked');
+      persist();
+    };
+
+    $('#closeViewer').addEventListener('click', () => {
+      vlabel.textContent = 'Viewer: —';
+      vframe.removeAttribute('src');
+      vframe.removeAttribute('srcdoc');
+      state.activeId = null; persist();
+    });
+
+    $('#undockBtn').addEventListener('click', () => {
+      const isDocked = viewer.classList.contains('docked');
+      if (isDocked) viewer.classList.remove('docked');
+      else viewer.classList.add('docked');
+    });
+
+    $('#dockBtn').addEventListener('click', () => {
+      viewer.classList.add('docked');
+      $('#dockBtn').setAttribute('aria-pressed','true');
+      $('#overlayBtn').setAttribute('aria-pressed','false');
+      state.mode = 'docked'; persist();
+    });
+
+    $('#overlayBtn').addEventListener('click', () => {
+      viewer.classList.remove('docked');
+      $('#dockBtn').setAttribute('aria-pressed','false');
+      $('#overlayBtn').setAttribute('aria-pressed','true');
+      state.mode = 'overlay'; persist();
+    });
+
+    $('#clearBtn').addEventListener('click', () => {
+      $('#closeViewer').click();
+    });
+
+    $('#fsBtn').addEventListener('click', async () => {
+      try {
+        const el = viewer.classList.contains('docked') ? viewer : d.body;
+        if (!d.fullscreenElement) await el.requestFullscreen(); else await d.exitFullscreen();
+      } catch (e) {}
+    });
+
+    // Global Inputs
+    $('#bias').addEventListener('input', (ev) => { state.bias = +ev.target.value; applyBias(); persist(); });
+    $('#sorter').addEventListener('change', (ev) => { state.sort = ev.target.value; render(); });
+    $('#q').addEventListener('input', (ev) => { state.filter = ev.target.value; render(); });
+
+    function persist(){ try{ localStorage.setItem('sh-index-state', JSON.stringify(state)); }catch{} }
+
+    // Bootstrap
+    (function init(){
+      // restore viewer mode
+      if(state.mode==='overlay') { viewer.classList.remove('docked'); $('#dockBtn').setAttribute('aria-pressed','false'); $('#overlayBtn').setAttribute('aria-pressed','true'); }
+      $('#bias').value = state.bias; applyBias();
+      $('#sorter').value = state.sort;
+      $('#q').value = state.filter;
+      render();
+      // Re-open last active if present
+      const last = entries.find(x=>x.id===state.activeId);
+      if (last) openInViewer(last);
+    })();
+  })();
+  </script>
+
+  <!-- Accessibility helpers -->
+  <style>
+    .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&H Spectrum Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=PT+Serif:wght@700&family=Inter:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f0ea;
+            --card-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --subtle-text: #666666;
+            --border-color: #cccccc;
+            --accent-color: #D93A1E; /* Signal Red */
+            --font-mono: 'IBM Plex Mono', monospace;
+            --font-serif: 'PT Serif', serif;
+            --font-sans: 'Inter', sans-serif;
+            --shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1.5rem;
+        }
+        
+        body.presentation-active { background-color: #1a1a1a; overflow: hidden; }
+        .hidden { display: none !important; }
+
+        /* --- Spectrum Controls --- */
+        .spectrum-container {
+            max-width: 1400px;
+            margin: 0 auto 1.5rem auto;
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+        .spectrum-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 0.5rem;
+        }
+        .spectrum-label { font-size: 1.25rem; }
+        .spectrum-label.time { font-family: var(--font-serif); }
+        .spectrum-label.space { font-family: var(--font-sans); font-weight: 500; }
+        .spectrum-slider { width: 100%; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: var(--border-color);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 24px; width: 10px; background: var(--text-color); cursor: pointer; -webkit-appearance: none; margin-top: -10px;
+        }
+        /* Firefox */
+        input[type=range]::-moz-range-track {
+            width: 100%; height: 4px; cursor: pointer; background: var(--border-color);
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 24px; width: 10px; background: var(--text-color); cursor: pointer; border: none;
+        }
+
+        .aux-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1rem;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 1rem;
+        }
+        .aux-controls > div { display: flex; align-items: center; gap: 0.5rem; }
+        .aux-controls label { font-size: 0.8rem; font-family: var(--font-mono); text-transform: uppercase; }
+        .aux-controls input, .aux-controls button {
+            padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); background-color: var(--bg-color); font-size: 0.875rem; font-family: var(--font-mono);
+        }
+        .aux-controls button { cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+        .aux-controls button:hover, .aux-controls button.active { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .aux-controls button:disabled { background-color: #bdbdbd; border-color: #bdbdbd; cursor: not-allowed; }
+
+        /* --- Cards --- */
+        #grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; max-width: 1400px; margin: 0 auto; transition: all 0.5s ease; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; box-shadow: var(--shadow); position: relative; transition: border 0.3s; }
+        .card.selected { box-shadow: 0 4px 12px rgba(217, 58, 30, 0.4); }
+        .card-select { position: absolute; top: 1rem; right: 1rem; transform: scale(1.2); accent-color: var(--accent-color); }
+
+        /* Spectral Card Styling */
+        .card[data-bias="time"] { border-left: 4px solid var(--text-color); }
+        .card[data-bias="space"] { border-right: 4px dashed var(--accent-color); }
+        .card[data-bias="hybrid"] { border-bottom: 4px solid var(--border-color); }
+        .card-title { margin: 0 0 0.25rem 0; font-size: 1.25rem; }
+        .card[data-bias="time"] .card-title { font-family: var(--font-serif); }
+        .card[data-bias="space"] .card-title, .card[data-bias="hybrid"] .card-title { font-family: var(--font-sans); font-weight: 500; }
+        
+        .card-subtitle { font-family: var(--font-mono); font-size: 0.8rem; font-style: italic; color: var(--subtle-text); margin: 0; }
+        .metrics-grid { margin: 1rem 0; }
+        .metric { display: flex; align-items: center; justify-content: space-between; margin: 0.5rem 0; font-family: var(--font-mono); font-size: 0.8rem; }
+        .metric span:first-child { text-transform: uppercase; }
+        
+        .list-section { margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 1rem; }
+        .list-section summary { font-weight: 600; font-size: 0.875rem; cursor: pointer; font-family: var(--font-mono); }
+        .list-section ul { list-style-type: none; padding-left: 0; margin: 0.5rem 0 0 0; }
+        .list-section li { position: relative; padding-left: 1rem; margin-bottom: 0.35rem; font-size: 0.875rem; line-height: 1.5; color: var(--subtle-text); }
+        .list-section li::before { content: '›'; position: absolute; left: 0; color: var(--accent-color); }
+
+        /* --- Compare & Presentation --- */
+        #compare-container { display: flex; gap: 1.5rem; max-width: 1400px; margin: 0 auto; align-items: flex-start; }
+        #compare-container .card { flex: 1; min-width: 0; }
+        #presentation-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .slide { width: 90%; max-width: 1000px; height: 90vh; max-height: 800px; background: var(--card-bg); padding: 3rem; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; }
+        .presentation-nav { position: fixed; top: 50%; left: 1rem; right: 1rem; display: flex; justify-content: space-between; transform: translateY(-50%); z-index: 1001; }
+        .presentation-nav button { background: rgba(255, 255, 255, 0.9); border: 1px solid var(--border-color); width: 50px; height: 50px; font-size: 2rem; cursor: pointer; color: var(--text-color); }
+        .presentation-counter { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 0.5rem 1rem; z-index: 1001; font-family: var(--font-mono); }
+    </style>
+</head>
+<body>
+    <div class="spectrum-container">
+        <div class="spectrum-header">
+            <div class="spectrum-label time">⏳ Monument</div>
+            <div class="spectrum-label space">🌍 Broadcast</div>
+        </div>
+        <input type="range" min="0" max="100" value="50" class="spectrum-slider" id="spectrum-slider">
+        <div class="aux-controls">
+            <div>
+                <label for="search-input">Filter:</label>
+                <input type="search" id="search-input" placeholder="Refine view...">
+            </div>
+            <div class="view-switcher">
+                <button id="view-grid-btn" class="active">Grid</button>
+                <button id="view-presentation-btn">Present</button>
+            </div>
+             <div>
+                <button id="compare-btn" disabled>Compare (0)</button>
+            </div>
+        </div>
+    </div>
+
+    <main id="main-content">
+        <div id="grid-container"></div>
+        <div id="compare-container" class="hidden"></div>
+    </main>
+    
+    <div id="presentation-container" class="hidden"></div>
+
+    <script>
+       const data = {
+            "innis_batch": [
+                // Populating with all data from previous interactions
+                {"innis_plot":{"proposal":"Granite monuments + corner markers","media_form":["stone stele","site perimeter markers"],"time_bias":0.75,"space_bias":0.15,"persistence":0.6,"legibility_millennia":0.3,"appropriation_risk":0.55,"maintenance_load":0.2,"monopoly_of_knowledge":0.7,"equity_alignment":0.3,"failure_modes":["inscriptions become linguistically opaque","stones quarried/reused"],"stewardship_requirements":["use non-repurposable geometries","pair with off-site narrative carriers"]}},
+                {"innis_plot":{"proposal":"Multi-language inscriptions","media_form":["text","multilingual inscription"],"time_bias":0.4,"space_bias":0.3,"persistence":0.25,"legibility_millennia":0.2,"appropriation_risk":0.35,"maintenance_load":0.15,"monopoly_of_knowledge":0.65,"equity_alignment":0.4,"failure_modes":["language drift → unreadable","elite translation gatekeeping"],"stewardship_requirements":["treat as transitional layer only","refresh plates every few centuries"]}},
+                {"innis_plot":{"proposal":"Buried libraries/archives","media_form":["document cache","maps"],"time_bias":0.55,"space_bias":0.15,"persistence":0.35,"legibility_millennia":0.3,"appropriation_risk":0.5,"maintenance_load":0.3,"monopoly_of_knowledge":0.75,"equity_alignment":0.35,"failure_modes":["formats become unreadable","treasure-hunting triggers excavation"],"stewardship_requirements":["use low-tech substrates","place OFF-site in redundant locations"]}},
+                {"innis_plot":{"proposal":"Stick-figure comics","media_form":["pictograms","storyboard"],"time_bias":0.5,"space_bias":0.25,"persistence":0.4,"legibility_millennia":0.45,"appropriation_risk":0.45,"maintenance_load":0.2,"monopoly_of_knowledge":0.6,"equity_alignment":0.45,"failure_modes":["reading order ambiguity","icon drift (misread as myth)"],"stewardship_requirements":["force sequence via path choreography","avoid stylization; keep schematic"]}},
+                {"innis_plot":{"proposal":"Landscape of Thorns","media_form":["mega-earthwork","hostile architecture"],"time_bias":0.7,"space_bias":0.35,"persistence":0.55,"legibility_millennia":0.35,"appropriation_risk":0.9,"maintenance_load":0.5,"monopoly_of_knowledge":0.8,"equity_alignment":0.3,"failure_modes":["becomes tourist spectacle","artists/settlers repurpose materials"],"stewardship_requirements":["de-spectacularize geometry","disperse smaller deterrent clusters"]}},
+                {"innis_plot":{"proposal":"Ray cats folklore","media_form":["bio-signal","oral tradition"],"time_bias":0.85,"space_bias":0.55,"persistence":0.5,"legibility_millennia":0.55,"appropriation_risk":0.4,"maintenance_load":0.6,"monopoly_of_knowledge":0.45,"equity_alignment":0.6,"failure_modes":["biotech trait lost","folklore aestheticized"],"stewardship_requirements":["license open breeding protocols","embed songs in schools/festivals"]}},
+                {"innis_plot":{"proposal":"Indigenous treaty-based guardianship","media_form":["treaty/charter","oral law"],"time_bias":0.9,"space_bias":0.4,"persistence":0.65,"legibility_millennia":0.6,"appropriation_risk":0.35,"maintenance_load":0.75,"monopoly_of_knowledge":0.3,"equity_alignment":0.85,"failure_modes":["state defunds or abrogates treaty","cultural suppression disrupts transmission"],"stewardship_requirements":["endow a perpetual fund","protect language/education programs"]}},
+                {"innis_plot":{"proposal":"Volcano Warning Folktale","media_form":["oral tradition","legend"],"time_bias":0.9,"space_bias":0.4,"persistence":0.8,"legibility_millennia":0.75,"appropriation_risk":0.5,"maintenance_load":0.15,"monopoly_of_knowledge":0.1,"equity_alignment":0.9,"failure_modes":["narrative decouples from warning","transmission chain is broken"],"stewardship_requirements":["embed in compelling story","ensure narrative is pleasurable to retell"]}},
+                {"innis_plot":{"proposal":"Tomb Hazard Legends","media_form":["rumor","folklore"],"time_bias":0.85,"space_bias":0.5,"persistence":0.7,"legibility_millennia":0.6,"appropriation_risk":0.7,"maintenance_load":0.1,"monopoly_of_knowledge":0.2,"equity_alignment":0.8,"failure_modes":["treasure promise outweighs threat","hazard is neutralized or removed"],"stewardship_requirements":["link legend to a real, verifiable hazard","propagate stories of poison over treasure"]}},
+                {"innis_plot":{"proposal":"The Atomic Priesthood","media_form":["created ritual","custodian order"],"time_bias":0.95,"space_bias":0.1,"persistence":0.65,"legibility_millennia":0.5,"appropriation_risk":0.85,"maintenance_load":0.9,"monopoly_of_knowledge":0.95,"equity_alignment":0.05,"failure_modes":["priesthood dies out or corrupts","ritual meaning inverts"],"stewardship_requirements":["establish self-perpetuating commission","entrust 'actual truth' exclusively to them"]}},
+                {"innis_plot":{"proposal":"Memetic Mutation ('Glass Slipper')","media_form":["narrative element","trope"],"time_bias":0.8,"space_bias":0.85,"persistence":0.75,"legibility_millennia":0.7,"appropriation_risk":0.3,"maintenance_load":0,"monopoly_of_knowledge":0.05,"equity_alignment":0.95,"failure_modes":["more compelling mutation arises","cultural context disappears"],"stewardship_requirements":["cannot be actively stewarded","craft 'gloriously unlikely' elements"]}},
+                {"innis_plot":{"proposal":"Resilient Physical Media ('Books are Sharks')","media_form":["bound codex","printed book"],"time_bias":0.6,"space_bias":0.65,"persistence":0.8,"legibility_millennia":0.2,"appropriation_risk":0.15,"maintenance_load":0.4,"monopoly_of_knowledge":0.5,"equity_alignment":0.5,"failure_modes":["material decay","language becomes obsolete"],"stewardship_requirements":["utilize robust, well-evolved technology","maintain a culture of literacy and preservation"]}},
+                {"innis_plot":{"proposal":"Digital/public storytelling (podcast, web)","media_form":["podcast","articles","memes"],"time_bias":0.1,"space_bias":0.95,"persistence":0.05,"legibility_millennia":0.15,"appropriation_risk":0.3,"maintenance_load":0.05,"monopoly_of_knowledge":0.5,"equity_alignment":0.5,"failure_modes":["link rot / format loss","platform collapse","narrative drift into entertainment"],"stewardship_requirements":["treat as recruitment channel for stewards now","print-to-stone/ceramic summaries for archival","mirror in community radio and print pamphlets"]}}
+            ]
+        };
+
+        const state = {
+            proposals: data.innis_batch.map(d => d.innis_plot),
+            filteredProposals: [],
+            selectedProposals: [],
+            currentView: 'grid',
+            presentationIndex: 0,
+            filters: { searchTerm: '', spectrumValue: 50 }
+        };
+
+        const getBias = (p) => {
+            if (p.time_bias > p.space_bias + 0.25) return 'time';
+            if (p.space_bias > p.time_bias + 0.25) return 'space';
+            return 'hybrid';
+        };
+
+        function createCardHTML(plot, view = 'grid') {
+            const isSelected = state.selectedProposals.includes(plot.proposal);
+            const bias = getBias(plot);
+            const metrics = ['time_bias', 'space_bias', 'persistence', 'legibility_millennia', 'appropriation_risk', 'maintenance_load', 'monopoly_of_knowledge', 'equity_alignment'];
+            return `
+                <div class="card ${isSelected ? 'selected' : ''}" data-proposal-id="${plot.proposal}" data-bias="${bias}">
+                    ${view === 'grid' ? `<input type="checkbox" class="card-select" ${isSelected ? 'checked' : ''} data-proposal-id="${plot.proposal}">` : ''}
+                    <h3 class="card-title">${plot.proposal}</h3>
+                    <p class="card-subtitle">${plot.media_form.join(', ')}</p>
+                    <div class="metrics-grid">
+                        ${metrics.map(key => `<div class="metric"><span>${key.replace(/_/g, ' ')}</span><span>${plot[key].toFixed(2)}</span></div>`).join('')}
+                    </div>
+                    <div class="list-section">
+                        <details><summary>Failure Modes</summary><ul>${plot.failure_modes.map(item => `<li>${item}</li>`).join('')}</ul></details>
+                    </div>
+                    <div class="list-section">
+                        <details><summary>Stewardship</summary><ul>${plot.stewardship_requirements.map(item => `<li>${item}</li>`).join('')}</ul></details>
+                    </div>
+                </div>`;
+        }
+        
+        function applyFiltersAndSort() {
+            const { searchTerm, spectrumValue } = state.filters;
+            let proposals = [...state.proposals];
+            if (searchTerm) {
+                const lowerCaseSearch = searchTerm.toLowerCase();
+                proposals = proposals.filter(p => p.proposal.toLowerCase().includes(lowerCaseSearch) || p.media_form.some(mf => mf.toLowerCase().includes(lowerCaseSearch)));
+            }
+
+            // Spectrum Sorting Logic
+            const spaceWeight = spectrumValue / 100;
+            const timeWeight = 1 - spaceWeight;
+            
+            proposals.sort((a, b) => {
+                const scoreA = (a.time_bias * timeWeight + a.persistence * timeWeight) - (a.space_bias * spaceWeight + (1-a.maintenance_load) * spaceWeight);
+                const scoreB = (b.time_bias * timeWeight + b.persistence * timeWeight) - (b.space_bias * spaceWeight + (1-b.maintenance_load) * spaceWeight);
+                return scoreA - scoreB;
+            });
+
+            state.filteredProposals = proposals;
+        }
+
+        function render() {
+            applyFiltersAndSort();
+            document.body.classList.toggle('presentation-active', state.currentView === 'presentation');
+            document.getElementById('grid-container').classList.toggle('hidden', state.currentView !== 'grid');
+            document.getElementById('compare-container').classList.toggle('hidden', state.currentView !== 'compare');
+            document.getElementById('presentation-container').classList.toggle('hidden', state.currentView !== 'presentation');
+
+            if (state.currentView === 'grid') document.getElementById('grid-container').innerHTML = state.filteredProposals.map(p => createCardHTML(p, 'grid')).join('');
+            else if (state.currentView === 'compare') {
+                const selected = state.proposals.filter(p => state.selectedProposals.includes(p.proposal));
+                document.getElementById('compare-container').innerHTML = selected.map(p => createCardHTML(p, 'compare')).join('');
+            }
+            else if (state.currentView === 'presentation') renderPresentationView();
+            updateControls();
+        }
+
+        function renderPresentationView() {
+            const container = document.getElementById('presentation-container');
+            if(state.filteredProposals.length === 0) {
+                 container.innerHTML = `<div class="slide"><h3>No proposals to display.</h3></div>`; return;
+            }
+            const plot = state.filteredProposals[state.presentationIndex];
+            container.innerHTML = `
+                <div class="presentation-nav"><button id="prev-slide-btn">‹</button><button id="next-slide-btn">›</button></div>
+                <div class="presentation-counter">${state.presentationIndex + 1} / ${state.filteredProposals.length}</div>
+                <div class="slide">${createCardHTML(plot, 'presentation')}</div>`;
+            container.querySelectorAll('details').forEach(d => d.open = true);
+        }
+
+        function updateControls() {
+            const compareBtn = document.getElementById('compare-btn');
+            const numSelected = state.selectedProposals.length;
+            compareBtn.textContent = `Compare (${numSelected})`;
+            compareBtn.disabled = numSelected < 2;
+            document.getElementById('view-grid-btn').classList.toggle('active', state.currentView === 'grid' || state.currentView === 'compare');
+            document.getElementById('view-presentation-btn').classList.toggle('active', state.currentView === 'presentation');
+        }
+
+        function setupEventListeners() {
+            document.getElementById('spectrum-slider').addEventListener('input', e => { state.filters.spectrumValue = parseInt(e.target.value, 10); render(); });
+            document.getElementById('search-input').addEventListener('input', e => { state.filters.searchTerm = e.target.value; render(); });
+            document.getElementById('view-grid-btn').addEventListener('click', () => { state.currentView = 'grid'; render(); });
+            document.getElementById('view-presentation-btn').addEventListener('click', () => { state.currentView = 'presentation'; state.presentationIndex = 0; render(); });
+            document.getElementById('compare-btn').addEventListener('click', () => { if (state.selectedProposals.length >= 2) { state.currentView = 'compare'; render(); }});
+            document.getElementById('grid-container').addEventListener('click', e => {
+                if (e.target.classList.contains('card-select')) {
+                    const proposalId = e.target.dataset.proposalId;
+                    if (e.target.checked) { if (!state.selectedProposals.includes(proposalId)) state.selectedProposals.push(proposalId); }
+                    else { state.selectedProposals = state.selectedProposals.filter(id => id !== proposalId); }
+                    updateControls();
+                    document.querySelector(`[data-proposal-id="${proposalId}"]`).classList.toggle('selected', e.target.checked);
+                }
+            });
+            document.getElementById('presentation-container').addEventListener('click', e => {
+                if(e.target.id === 'presentation-container') { state.currentView = 'grid'; render(); }
+                if(e.target.id === 'prev-slide-btn') navigatePresentation(-1);
+                if(e.target.id === 'next-slide-btn') navigatePresentation(1);
+            });
+            document.addEventListener('keydown', e => {
+                if (state.currentView === 'presentation') {
+                    if (e.key === 'ArrowRight') navigatePresentation(1);
+                    if (e.key === 'ArrowLeft') navigatePresentation(-1);
+                    if (e.key === 'Escape') { state.currentView = 'grid'; render(); }
+                }
+            });
+        }
+        
+        function navigatePresentation(direction) {
+            const numSlides = state.filteredProposals.length;
+            if(numSlides === 0) return;
+            state.presentationIndex = (state.presentationIndex + direction + numSlides) % numSlides;
+            renderPresentationView();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            render();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innis Batch Proposal Comparison</title>
+    <style>
+        :root {
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --bar-bg: #f0f0f0;
+            --bar-fill: #007bff;
+            --header-bg: #f8f9fa;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #f4f4f9;
+            color: var(--text-color);
+            margin: 0;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .sort-controls label {
+            font-weight: bold;
+        }
+
+        .sort-controls select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        #card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .card-subtitle {
+            font-style: italic;
+            color: #666;
+            margin: 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .bar-container {
+            width: 100%;
+            background-color: var(--bar-bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 12px;
+            background-color: var(--bar-fill);
+            border-radius: 4px;
+        }
+
+        .list-section {
+            margin-bottom: 1rem;
+        }
+
+        .list-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.25rem;
+        }
+
+        .list {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .list li {
+            position: relative;
+            padding-left: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--bar-fill);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="sort-controls">
+                <label for="sort-select">Sort by:</label>
+                <select id="sort-select">
+                    <option value="default">Default</option>
+                    <option value="time_bias">Time Bias</option>
+                    <option value="space_bias">Space Bias</option>
+                    <option value="persistence">Persistence</option>
+                    <option value="legibility_millennia">Legibility (Millennia)</option>
+                    <option value="appropriation_risk">Appropriation Risk</option>
+                    <option value="maintenance_load">Maintenance Load</option>
+                    <option value="monopoly_of_knowledge">Monopoly of Knowledge</option>
+                    <option value="equity_alignment">Equity Alignment</option>
+                </select>
+            </div>
+        </header>
+
+        <div id="card-container"></div>
+    </div>
+
+    <script>
+        const data = {
+"innis_batch": [
+{
+"innis_plot": {
+"proposal": "Granite monuments + corner markers",
+"media_form": ["stone stele", "site perimeter markers", "inscription"],
+"time_bias": 0.75,
+"space_bias": 0.15,
+"persistence": 0.60,
+"legibility_millennia": 0.30,
+"appropriation_risk": 0.55,
+"maintenance_load": 0.20,
+"monopoly_of_knowledge": 0.70,
+"equity_alignment": 0.30,
+"failure_modes": [
+"inscriptions become linguistically opaque",
+"stones quarried/reused for construction",
+"meaning detaches from material over time"
+],
+"stewardship_requirements": [
+"use non-repurposable geometries (undercuts, brittle projections)",
+"pair with off-site narrative carriers (rituals, curricula)",
+"embed icon-free hazard affordances (no flat tops, no shade)"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Multi-language inscriptions (UN6 + Navajo)",
+"media_form": ["text", "multilingual inscription"],
+"time_bias": 0.40,
+"space_bias": 0.30,
+"persistence": 0.25,
+"legibility_millennia": 0.20,
+"appropriation_risk": 0.35,
+"maintenance_load": 0.15,
+"monopoly_of_knowledge": 0.65,
+"equity_alignment": 0.40,
+"failure_modes": [
+"language drift → unreadable",
+"elite translation gatekeeping",
+"political devaluation of included/excluded languages"
+],
+"stewardship_requirements": [
+"treat as transitional layer only",
+"refresh plates every few centuries via chartered custodians",
+"mirror warnings in pictorial/ritual carriers"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Buried libraries/archives",
+"media_form": ["document cache", "maps", "technical records"],
+"time_bias": 0.55,
+"space_bias": 0.15,
+"persistence": 0.35,
+"legibility_millennia": 0.30,
+"appropriation_risk": 0.50,
+"maintenance_load": 0.30,
+"monopoly_of_knowledge": 0.75,
+"equity_alignment": 0.35,
+"failure_modes": [
+"formats become unreadable",
+"treasure-hunting triggers excavation",
+"sealed caches invite breaching"
+],
+"stewardship_requirements": [
+"use low-tech substrates (stone/ceramic tablets, carbon inks)",
+"place OFF-site in redundant locations with decoy orientation",
+"license copies to distributed stewards (tribal libraries, monasteries)"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Stick-figure comics / sequences",
+"media_form": ["pictograms", "storyboard", "processional signage"],
+"time_bias": 0.50,
+"space_bias": 0.25,
+"persistence": 0.40,
+"legibility_millennia": 0.45,
+"appropriation_risk": 0.45,
+"maintenance_load": 0.20,
+"monopoly_of_knowledge": 0.60,
+"equity_alignment": 0.45,
+"failure_modes": [
+"reading order ambiguity (R→L vs L→R)",
+"icon drift (misread as initiation or healing myth)",
+"vandalism/erosion of panels"
+],
+"stewardship_requirements": [
+"force sequence via path choreography and numbering",
+"avoid stylization; keep figures schematic",
+"engrave deep with weathering shields; duplicate along approach corridors"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Skull & crossbones (rejected)",
+"media_form": ["universal hazard icon"],
+"time_bias": 0.20,
+"space_bias": 0.70,
+"persistence": 0.15,
+"legibility_millennia": 0.15,
+"appropriation_risk": 0.80,
+"maintenance_load": 0.05,
+"monopoly_of_knowledge": 0.40,
+"equity_alignment": 0.30,
+"failure_modes": [
+"icon becomes fashionable/benign",
+"religious reinterpretation reverses valence",
+"children’s merch normalizes symbol"
+],
+"stewardship_requirements": [
+"do not rely on icon alone",
+"if used, subordinate to narrative/ritual carriers",
+"avoid placement on attractive/portable objects"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Mr. Yuk / ‘yuk’ faces (rejected)",
+"media_form": ["modern poison logo"],
+"time_bias": 0.15,
+"space_bias": 0.75,
+"persistence": 0.10,
+"legibility_millennia": 0.10,
+"appropriation_risk": 0.85,
+"maintenance_load": 0.05,
+"monopoly_of_knowledge": 0.35,
+"equity_alignment": 0.25,
+"failure_modes": [
+"total cultural obsolescence",
+"becomes comic/mascot",
+"cross-cultural misread"
+],
+"stewardship_requirements": [
+"exclude as core channel",
+"use only in present-day education if at all",
+"pair with non-iconic, material deterrents"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Landscape of Thorns",
+"media_form": ["mega-earthwork", "hostile architecture"],
+"time_bias": 0.70,
+"space_bias": 0.35,
+"persistence": 0.55,
+"legibility_millennia": 0.35,
+"appropriation_risk": 0.90,
+"maintenance_load": 0.50,
+"monopoly_of_knowledge": 0.80,
+"equity_alignment": 0.30,
+"failure_modes": [
+"becomes tourist spectacle → increased intrusion",
+"artists/settlers repurpose materials",
+"mythic attraction outweighs deterrence"
+],
+"stewardship_requirements": [
+"de-spectacularize geometry (anti-iconic forms)",
+"disperse smaller deterrent clusters (no singular vista)",
+"close sightlines; avoid ‘monumental’ silhouettes"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Big berm / monumental earthworks",
+"media_form": ["earthen berm", "moats", "graded contours"],
+"time_bias": 0.65,
+"space_bias": 0.25,
+"persistence": 0.60,
+"legibility_millennia": 0.35,
+"appropriation_risk": 0.60,
+"maintenance_load": 0.35,
+"monopoly_of_knowledge": 0.75,
+"equity_alignment": 0.35,
+"failure_modes": [
+"berms regraded for agriculture/roads",
+"settlement uses berm for shelter",
+"geomorphic erosion erases pattern"
+],
+"stewardship_requirements": [
+"design negative affordances (steep, crumbling faces)",
+"seed with thorny endemic flora",
+"mark approach corridors far from core to deter entry earlier"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Ray cats folklore",
+"media_form": ["bio-signal", "oral tradition", "songs/stories", "omens"],
+"time_bias": 0.85,
+"space_bias": 0.55,
+"persistence": 0.50,
+"legibility_millennia": 0.55,
+"appropriation_risk": 0.40,
+"maintenance_load": 0.60,
+"monopoly_of_knowledge": 0.45,
+"equity_alignment": 0.60,
+"failure_modes": [
+"biotech trait lost without maintenance",
+"folklore aestheticized; prescriptive edge blunts",
+"cats become pilgrimage object"
+],
+"stewardship_requirements": [
+"license open, distributed breeding protocols",
+"embed songs in schools/festivals beyond the site",
+"never stage performances at the repository"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Digital/public storytelling (podcast, web)",
+"media_form": ["podcast", "articles", "memes"],
+"time_bias": 0.10,
+"space_bias": 0.95,
+"persistence": 0.05,
+"legibility_millennia": 0.15,
+"appropriation_risk": 0.30,
+"maintenance_load": 0.05,
+"monopoly_of_knowledge": 0.50,
+"equity_alignment": 0.50,
+"failure_modes": [
+"link rot / format loss",
+"platform collapse",
+"narrative drift into entertainment"
+],
+"stewardship_requirements": [
+"treat as recruitment channel for stewards now",
+"print-to-stone/ceramic summaries for archival",
+"mirror in community radio and print pamphlets"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "On-site performance/ritual reenactment",
+"media_form": ["annual rite", "procession", "taboo enforcement"],
+"time_bias": 0.80,
+"space_bias": 0.30,
+"persistence": 0.45,
+"legibility_millennia": 0.55,
+"appropriation_risk": 0.50,
+"maintenance_load": 0.70,
+"monopoly_of_knowledge": 0.35,
+"equity_alignment": 0.70,
+"failure_modes": [
+"festivalization → tourism",
+"clericalization → gatekeeping caste",
+"ritual meaning inverts (purification → attraction)"
+],
+"stewardship_requirements": [
+"hold rites OFF-site; mark site as taboo/no-gathering",
+"rotate custodial roles across communities",
+"codify ‘no spectators’ rule; keep rites small, didactic"
+]
+}
+},
+{
+"innis_plot": {
+"proposal": "Indigenous treaty-based guardianship",
+"media_form": ["treaty/charter", "oral law", "place-names", "custodian orders"],
+"time_bias": 0.90,
+"space_bias": 0.40,
+"persistence": 0.65,
+"legibility_millennia": 0.60,
+"appropriation_risk": 0.35,
+"maintenance_load": 0.75,
+"monopoly_of_knowledge": 0.30,
+"equity_alignment": 0.85,
+"failure_modes": [
+"state defunding or abrogation of treaty",
+"cultural suppression disrupts transmission",
+"political turnover replaces stewards"
+],
+"stewardship_requirements": [
+"endow a perpetual fund controlled by tribal nations",
+"protect language/education programs in law",
+"record parallel charters (stone tablets + oral recitation) and renew oaths each generation"
+]
+}
+}
+]
+};
+
+        const cardContainer = document.getElementById('card-container');
+        const sortSelect = document.getElementById('sort-select');
+
+        function createMetric(label, value) {
+            const metricEl = document.createElement('div');
+            metricEl.className = 'metric';
+
+            const labelEl = document.createElement('div');
+            labelEl.className = 'metric-label';
+            labelEl.innerHTML = `<span>${label}</span><span>${value.toFixed(2)}</span>`;
+
+            const barContainerEl = document.createElement('div');
+            barContainerEl.className = 'bar-container';
+
+            const barEl = document.createElement('div');
+            barEl.className = 'bar';
+            barEl.style.width = `${value * 100}%`;
+
+            barContainerEl.appendChild(barEl);
+            metricEl.appendChild(labelEl);
+            metricEl.appendChild(barContainerEl);
+
+            return metricEl;
+        }
+        
+        function createList(title, items) {
+            const listSectionEl = document.createElement('div');
+            listSectionEl.className = 'list-section';
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'list-title';
+            titleEl.textContent = title;
+            
+            const listEl = document.createElement('ul');
+            listEl.className = 'list';
+
+            items.forEach(itemText => {
+                const li = document.createElement('li');
+                li.textContent = itemText;
+                listEl.appendChild(li);
+            });
+
+            listSectionEl.appendChild(titleEl);
+            listSectionEl.appendChild(listEl);
+            
+            return listSectionEl;
+        }
+
+        function renderCards(dataArray) {
+            cardContainer.innerHTML = '';
+            dataArray.forEach(item => {
+                const plot = item.innis_plot;
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const cardHeader = document.createElement('div');
+                cardHeader.className = 'card-header';
+
+                const title = document.createElement('h2');
+                title.className = 'card-title';
+                title.textContent = plot.proposal;
+
+                const subtitle = document.createElement('p');
+                subtitle.className = 'card-subtitle';
+                subtitle.textContent = plot.media_form.join(', ');
+                
+                cardHeader.appendChild(title);
+                cardHeader.appendChild(subtitle);
+                card.appendChild(cardHeader);
+
+                const metricsGrid = document.createElement('div');
+                metricsGrid.className = 'metrics-grid';
+
+                metricsGrid.appendChild(createMetric('Time Bias', plot.time_bias));
+                metricsGrid.appendChild(createMetric('Space Bias', plot.space_bias));
+                metricsGrid.appendChild(createMetric('Persistence', plot.persistence));
+                metricsGrid.appendChild(createMetric('Legibility (Millennia)', plot.legibility_millennia));
+                metricsGrid.appendChild(createMetric('Appropriation Risk', plot.appropriation_risk));
+                metricsGrid.appendChild(createMetric('Maintenance Load', plot.maintenance_load));
+                metricsGrid.appendChild(createMetric('Monopoly of Knowledge', plot.monopoly_of_knowledge));
+                metricsGrid.appendChild(createMetric('Equity Alignment', plot.equity_alignment));
+                
+                card.appendChild(metricsGrid);
+                
+                card.appendChild(createList('Failure Modes', plot.failure_modes));
+                card.appendChild(createList('Stewardship Requirements', plot.stewardship_requirements));
+
+                cardContainer.appendChild(card);
+            });
+        }
+
+        function sortData(sortBy) {
+            let sortedData = [...data.innis_batch];
+            if (sortBy !== 'default') {
+                sortedData.sort((a, b) => b.innis_plot[sortBy] - a.innis_plot[sortBy]);
+            }
+            renderCards(sortedData);
+        }
+
+        sortSelect.addEventListener('change', (event) => {
+            sortData(event.target.value);
+        });
+
+        // Initial render
+        renderCards(data.innis_batch);
+
+    </script>
+</body>
+</html>

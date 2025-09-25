@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal Analysis Tool</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #212121;
+            --subtle-text: #616161;
+            --border-color: #e0e0e0;
+            --bar-bg: #eeeeee;
+            --bar-fill: #4285F4;
+            --header-bg: #ffffff;
+            --shadow: 0 2px 4px rgba(0,0,0,0.05);
+            --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        body.presentation-active {
+            background-color: #212121;
+            overflow: hidden;
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- Controls --- */
+        .controls-container {
+            max-width: 1400px;
+            margin: 0 auto 1.5rem auto;
+            background: var(--header-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .control-group > div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .control-group input, .control-group select, .control-group button {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: #fff;
+            font-size: 0.875rem;
+        }
+        
+        .control-group input[type="search"] {
+             min-width: 200px;
+        }
+
+        .control-group button {
+            cursor: pointer;
+            background-color: #f5f5f5;
+            font-weight: 500;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .control-group button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .control-group button.primary {
+            background-color: var(--bar-fill);
+            color: white;
+            border-color: var(--bar-fill);
+        }
+        
+        .control-group button.primary:disabled {
+            background-color: #bdbdbd;
+            border-color: #bdbdbd;
+            cursor: not-allowed;
+        }
+
+        .view-switcher button.active {
+            background-color: var(--bar-fill);
+            color: white;
+            border-color: var(--bar-fill);
+        }
+        
+        /* --- Grid View --- */
+        #grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .card.selected {
+            border-color: var(--bar-fill);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+        }
+
+        .card-select {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            transform: scale(1.2);
+        }
+        
+        .card-header { padding-left: 1.5rem; }
+        .card-title { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.25rem 0; }
+        .card-subtitle { font-size: 0.8rem; font-style: italic; color: var(--subtle-text); margin: 0; }
+
+        .metric { display: flex; flex-direction: column; margin: 0.5rem 0; }
+        .metric-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem; }
+        .bar-container { width: 100%; background-color: var(--bar-bg); border-radius: 4px; overflow: hidden; }
+        .bar { height: 8px; background-color: var(--bar-fill); border-radius: 4px; }
+
+        .list-section details { margin-top: 1rem; }
+        .list-section summary { font-weight: 600; font-size: 0.875rem; cursor: pointer; padding: 0.25rem 0; }
+        .list-section ul { list-style-type: none; padding-left: 0; margin: 0.5rem 0 0 0; }
+        .list-section li { position: relative; padding-left: 1rem; margin-bottom: 0.35rem; font-size: 0.8rem; line-height: 1.4; color: var(--subtle-text); }
+        .list-section li::before { content: '›'; position: absolute; left: 0; color: var(--bar-fill); }
+
+        /* --- Compare View --- */
+        #compare-container {
+            display: flex;
+            gap: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+        
+        #compare-container .card {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        /* --- Presentation View --- */
+        #presentation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .slide {
+            width: 90%;
+            max-width: 1000px;
+            height: 90vh;
+            max-height: 800px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem 3rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        
+        .slide-header .card-title { font-size: 2rem; }
+        .slide-header .card-subtitle { font-size: 1rem; }
+        
+        .slide .list-section details { margin-top: 1.5rem; }
+        .slide .list-section summary { font-size: 1.25rem; }
+        .slide .list-section li { font-size: 1rem; color: var(--text-color); }
+        .slide .metric-label, .slide .metric { font-size: 1rem; }
+        .slide .bar { height: 12px; }
+
+        .presentation-nav {
+            position: fixed;
+            top: 50%;
+            left: 1rem;
+            right: 1rem;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+            z-index: 1001;
+        }
+        
+        .presentation-nav button {
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            line-height: 50px;
+        }
+        
+        .presentation-counter {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            z-index: 1001;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls-container">
+        <div class="control-group">
+             <div>
+                <label for="search-input">Filter:</label>
+                <input type="search" id="search-input" placeholder="Search proposals...">
+            </div>
+            <div>
+                <label for="sort-select">Sort by:</label>
+                <select id="sort-select">
+                    <option value="default">Default</option>
+                    <option value="proposal">Proposal Name</option>
+                    <option value="time_bias">Time Bias</option>
+                    <option value="space_bias">Space Bias</option>
+                    <option value="persistence">Persistence</option>
+                    <option value="legibility_millennia">Legibility (Millennia)</option>
+                    <option value="appropriation_risk">Appropriation Risk</option>
+                    <option value="maintenance_load">Maintenance Load</option>
+                    <option value="monopoly_of_knowledge">Monopoly of Knowledge</option>
+                    <option value="equity_alignment">Equity Alignment</option>
+                </select>
+                <select id="sort-direction">
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                </select>
+            </div>
+            <div class="view-switcher">
+                <label>View:</label>
+                <button id="view-grid-btn" class="active">Grid View</button>
+                <button id="view-presentation-btn">Presentation Mode</button>
+            </div>
+             <div>
+                <button id="compare-btn" class="primary" disabled>Compare Selected (0)</button>
+                <button id="clear-selection-btn">Clear Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <main id="main-content">
+        <div id="grid-container"></div>
+        <div id="compare-container" class="hidden"></div>
+    </main>
+    
+    <div id="presentation-container" class="hidden"></div>
+
+    <script>
+        const data = {
+            "innis_batch": [
+                // Batch 1
+                {"innis_plot":{"proposal":"Granite monuments + corner markers","media_form":["stone stele","site perimeter markers","inscription"],"time_bias":0.75,"space_bias":0.15,"persistence":0.6,"legibility_millennia":0.3,"appropriation_risk":0.55,"maintenance_load":0.2,"monopoly_of_knowledge":0.7,"equity_alignment":0.3,"failure_modes":["inscriptions become linguistically opaque","stones quarried/reused for construction","meaning detaches from material over time"],"stewardship_requirements":["use non-repurposable geometries (undercuts, brittle projections)","pair with off-site narrative carriers (rituals, curricula)","embed icon-free hazard affordances (no flat tops, no shade)"]}},
+                {"innis_plot":{"proposal":"Multi-language inscriptions (UN6 + Navajo)","media_form":["text","multilingual inscription"],"time_bias":0.4,"space_bias":0.3,"persistence":0.25,"legibility_millennia":0.2,"appropriation_risk":0.35,"maintenance_load":0.15,"monopoly_of_knowledge":0.65,"equity_alignment":0.4,"failure_modes":["language drift → unreadable","elite translation gatekeeping","political devaluation of included/excluded languages"],"stewardship_requirements":["treat as transitional layer only","refresh plates every few centuries via chartered custodians","mirror warnings in pictorial/ritual carriers"]}},
+                {"innis_plot":{"proposal":"Buried libraries/archives","media_form":["document cache","maps","technical records"],"time_bias":0.55,"space_bias":0.15,"persistence":0.35,"legibility_millennia":0.3,"appropriation_risk":0.5,"maintenance_load":0.3,"monopoly_of_knowledge":0.75,"equity_alignment":0.35,"failure_modes":["formats become unreadable","treasure-hunting triggers excavation","sealed caches invite breaching"],"stewardship_requirements":["use low-tech substrates (stone/ceramic tablets, carbon inks)","place OFF-site in redundant locations with decoy orientation","license copies to distributed stewards (tribal libraries, monasteries)"]}},
+                {"innis_plot":{"proposal":"Stick-figure comics / sequences","media_form":["pictograms","storyboard","processional signage"],"time_bias":0.5,"space_bias":0.25,"persistence":0.4,"legibility_millennia":0.45,"appropriation_risk":0.45,"maintenance_load":0.2,"monopoly_of_knowledge":0.6,"equity_alignment":0.45,"failure_modes":["reading order ambiguity (R→L vs L→R)","icon drift (misread as initiation or healing myth)","vandalism/erosion of panels"],"stewardship_requirements":["force sequence via path choreography and numbering","avoid stylization; keep figures schematic","engrave deep with weathering shields; duplicate along approach corridors"]}},
+                {"innis_plot":{"proposal":"Skull & crossbones (rejected)","media_form":["universal hazard icon"],"time_bias":0.2,"space_bias":0.7,"persistence":0.15,"legibility_millennia":0.15,"appropriation_risk":0.8,"maintenance_load":0.05,"monopoly_of_knowledge":0.4,"equity_alignment":0.3,"failure_modes":["icon becomes fashionable/benign","religious reinterpretation reverses valence","children’s merch normalizes symbol"],"stewardship_requirements":["do not rely on icon alone","if used, subordinate to narrative/ritual carriers","avoid placement on attractive/portable objects"]}},
+                {"innis_plot":{"proposal":"Mr. Yuk / ‘yuk’ faces (rejected)","media_form":["modern poison logo"],"time_bias":0.15,"space_bias":0.75,"persistence":0.1,"legibility_millennia":0.1,"appropriation_risk":0.85,"maintenance_load":0.05,"monopoly_of_knowledge":0.35,"equity_alignment":0.25,"failure_modes":["total cultural obsolescence","becomes comic/mascot","cross-cultural misread"],"stewardship_requirements":["exclude as core channel","use only in present-day education if at all","pair with non-iconic, material deterrents"]}},
+                {"innis_plot":{"proposal":"Landscape of Thorns","media_form":["mega-earthwork","hostile architecture"],"time_bias":0.7,"space_bias":0.35,"persistence":0.55,"legibility_millennia":0.35,"appropriation_risk":0.9,"maintenance_load":0.5,"monopoly_of_knowledge":0.8,"equity_alignment":0.3,"failure_modes":["becomes tourist spectacle → increased intrusion","artists/settlers repurpose materials","mythic attraction outweighs deterrence"],"stewardship_requirements":["de-spectacularize geometry (anti-iconic forms)","disperse smaller deterrent clusters (no singular vista)","close sightlines; avoid ‘monumental’ silhouettes"]}},
+                {"innis_plot":{"proposal":"Big berm / monumental earthworks","media_form":["earthen berm","moats","graded contours"],"time_bias":0.65,"space_bias":0.25,"persistence":0.6,"legibility_millennia":0.35,"appropriation_risk":0.6,"maintenance_load":0.35,"monopoly_of_knowledge":0.75,"equity_alignment":0.35,"failure_modes":["berms regraded for agriculture/roads","settlement uses berm for shelter","geomorphic erosion erases pattern"],"stewardship_requirements":["design negative affordances (steep, crumbling faces)","seed with thorny endemic flora","mark approach corridors far from core to deter entry earlier"]}},
+                {"innis_plot":{"proposal":"Ray cats folklore","media_form":["bio-signal","oral tradition","songs/stories","omens"],"time_bias":0.85,"space_bias":0.55,"persistence":0.5,"legibility_millennia":0.55,"appropriation_risk":0.4,"maintenance_load":0.6,"monopoly_of_knowledge":0.45,"equity_alignment":0.6,"failure_modes":["biotech trait lost without maintenance","folklore aestheticized; prescriptive edge blunts","cats become pilgrimage object"],"stewardship_requirements":["license open, distributed breeding protocols","embed songs in schools/festivals beyond the site","never stage performances at the repository"]}},
+                {"innis_plot":{"proposal":"Digital/public storytelling (podcast, web)","media_form":["podcast","articles","memes"],"time_bias":0.1,"space_bias":0.95,"persistence":0.05,"legibility_millennia":0.15,"appropriation_risk":0.3,"maintenance_load":0.05,"monopoly_of_knowledge":0.5,"equity_alignment":0.5,"failure_modes":["link rot / format loss","platform collapse","narrative drift into entertainment"],"stewardship_requirements":["treat as recruitment channel for stewards now","print-to-stone/ceramic summaries for archival","mirror in community radio and print pamphlets"]}},
+                {"innis_plot":{"proposal":"On-site performance/ritual reenactment","media_form":["annual rite","procession","taboo enforcement"],"time_bias":0.8,"space_bias":0.3,"persistence":0.45,"legibility_millennia":0.55,"appropriation_risk":0.5,"maintenance_load":0.7,"monopoly_of_knowledge":0.35,"equity_alignment":0.7,"failure_modes":["festivalization → tourism","clericalization → gatekeeping caste","ritual meaning inverts (purification → attraction)"],"stewardship_requirements":["hold rites OFF-site; mark site as taboo/no-gathering","rotate custodial roles across communities","codify ‘no spectators’ rule; keep rites small, didactic"]}},
+                {"innis_plot":{"proposal":"Indigenous treaty-based guardianship","media_form":["treaty/charter","oral law","place-names","custodian orders"],"time_bias":0.9,"space_bias":0.4,"persistence":0.65,"legibility_millennia":0.6,"appropriation_risk":0.35,"maintenance_load":0.75,"monopoly_of_knowledge":0.3,"equity_alignment":0.85,"failure_modes":["state defunding or abrogation of treaty","cultural suppression disrupts transmission","political turnover replaces stewards"],"stewardship_requirements":["endow a perpetual fund controlled by tribal nations","protect language/education programs in law","record parallel charters (stone tablets + oral recitation) and renew oaths each generation"]}},
+                // Batch 2
+                {"innis_plot":{"proposal":"Volcano Warning Folktale","media_form":["oral tradition","legend","narrative shell"],"time_bias":0.9,"space_bias":0.4,"persistence":0.8,"legibility_millennia":0.75,"appropriation_risk":0.5,"maintenance_load":0.15,"monopoly_of_knowledge":0.1,"equity_alignment":0.9,"failure_modes":["narrative 'sweetness' (love story) decouples from the warning","transmission chain is broken by cultural disruption","warning is dismissed as myth by descendants after long dormancy"],"stewardship_requirements":["embed warning inside a compelling, emotionally resonant story (forbidden love, tragedy)","ensure the narrative is pleasurable to tell and retell","pass down through at least three generations to root the information in cultural memory"]}},
+                {"innis_plot":{"proposal":"Tomb Hazard Legends","media_form":["rumor","historical account","folklore","superstition"],"time_bias":0.85,"space_bias":0.5,"persistence":0.7,"legibility_millennia":0.6,"appropriation_risk":0.7,"maintenance_load":0.1,"monopoly_of_knowledge":0.2,"equity_alignment":0.8,"failure_modes":["promise of treasure outweighs the perceived threat ('greedy grave robbers')","the physical hazard (e.g., mercury) is neutralized or removed","the story is dismissed as an 'ineffectual curse' without verifiable danger"],"stewardship_requirements":["link the legend to a real, verifiable, and persistent physical hazard","intentionally 'lose' the precise location to enhance myth and deter casual searching","propagate stories that emphasize poison and sickness over treasure"]}},
+                {"innis_plot":{"proposal":"The Atomic Priesthood","media_form":["artificially created ritual","commissioned legend","custodian order"],"time_bias":0.95,"space_bias":0.1,"persistence":0.65,"legibility_millennia":0.5,"appropriation_risk":0.85,"maintenance_load":0.9,"monopoly_of_knowledge":0.95,"equity_alignment":0.05,"failure_modes":["priesthood dies out, has a schism, or becomes corrupt","ritual meaning inverts, attracting people instead of repelling them","the uninitiated population dismisses the priesthood's warnings as arcane"],"stewardship_requirements":["establish a self-perpetuating commission of experts ('priesthood')","entrust the 'actual truth' exclusively to the commission","create and nurture a surrounding folklore that shuns the area through superstition, retold year by year"]}},
+                {"innis_plot":{"proposal":"Memetic Mutation ('Glass Slipper')","media_form":["narrative element","trope","homonymic shift"],"time_bias":0.8,"space_bias":0.85,"persistence":0.75,"legibility_millennia":0.7,"appropriation_risk":0.3,"maintenance_load":0,"monopoly_of_knowledge":0.05,"equity_alignment":0.95,"failure_modes":["a more compelling mutation arises in a competing story","the cultural context that makes the element memorable disappears","the story's core is changed so much the element no longer fits"],"stewardship_requirements":["cannot be actively stewarded; relies on emergent properties","craft elements that are 'gloriously unlikely' and 'stick in the memory'","allow for organic, decentralized retelling and adaptation"]}},
+                {"innis_plot":{"proposal":"Resilient Physical Media ('Books are Sharks')","media_form":["bound codex","printed book","durable physical object"],"time_bias":0.6,"space_bias":0.65,"persistence":0.8,"legibility_millennia":0.2,"appropriation_risk":0.15,"maintenance_load":0.4,"monopoly_of_knowledge":0.5,"equity_alignment":0.5,"failure_modes":["material decay (paper rot, ink fading)","language becomes obsolete and untranslatable","catastrophic destruction (fire, flood)","culture loses literacy or interest in the form"],"stewardship_requirements":["utilize robust, well-evolved technology ('nothing is better at being a shark than a shark')","store in libraries and archives protected from environmental threats","maintain a culture of literacy and preservation"]}}
+            ]
+        };
+
+        const state = {
+            proposals: data.innis_batch.map(d => d.innis_plot),
+            filteredProposals: [],
+            selectedProposals: [],
+            currentView: 'grid', // 'grid', 'compare', 'presentation'
+            presentationIndex: 0,
+            filters: {
+                searchTerm: '',
+                sortBy: 'default',
+                sortDir: 'desc'
+            }
+        };
+
+        // DOM Elements
+        const mainContent = document.getElementById('main-content');
+        const gridContainer = document.getElementById('grid-container');
+        const compareContainer = document.getElementById('compare-container');
+        const presentationContainer = document.getElementById('presentation-container');
+        
+        // --- Helper Functions ---
+        const toTitleCase = (str) => str.replace(/_/g, ' ').replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+
+        // --- Card Creation Logic ---
+        function createCardHTML(plot, view = 'grid') {
+            const isSelected = state.selectedProposals.includes(plot.proposal);
+            const metrics = [
+                'time_bias', 'space_bias', 'persistence', 'legibility_millennia',
+                'appropriation_risk', 'maintenance_load', 'monopoly_of_knowledge', 'equity_alignment'
+            ];
+
+            return `
+                <div class="card ${isSelected ? 'selected' : ''}" data-proposal-id="${plot.proposal}">
+                    ${view === 'grid' ? `<input type="checkbox" class="card-select" ${isSelected ? 'checked' : ''} data-proposal-id="${plot.proposal}">` : ''}
+                    <div class="card-header">
+                        <h3 class="card-title">${plot.proposal}</h3>
+                        <p class="card-subtitle">${plot.media_form.join(', ')}</p>
+                    </div>
+                    <div class="metrics-grid">
+                        ${metrics.map(key => `
+                            <div class="metric">
+                                <div class="metric-label">
+                                    <span>${toTitleCase(key)}</span><span>${plot[key].toFixed(2)}</span>
+                                </div>
+                                <div class="bar-container"><div class="bar" style="width: ${plot[key] * 100}%"></div></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="list-section">
+                        <details><summary>Failure Modes</summary>
+                            <ul>${plot.failure_modes.map(item => `<li>${item}</li>`).join('')}</ul>
+                        </details>
+                    </div>
+                    <div class="list-section">
+                        <details><summary>Stewardship Requirements</summary>
+                            <ul>${plot.stewardship_requirements.map(item => `<li>${item}</li>`).join('')}</ul>
+                        </details>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // --- Rendering Logic ---
+        function applyFiltersAndSort() {
+            const { searchTerm, sortBy, sortDir } = state.filters;
+            let proposals = [...state.proposals];
+
+            // Filter
+            if (searchTerm) {
+                const lowerCaseSearch = searchTerm.toLowerCase();
+                proposals = proposals.filter(p => 
+                    p.proposal.toLowerCase().includes(lowerCaseSearch) ||
+                    p.media_form.some(mf => mf.toLowerCase().includes(lowerCaseSearch))
+                );
+            }
+            
+            // Sort
+            if (sortBy !== 'default') {
+                proposals.sort((a, b) => {
+                    const valA = a[sortBy];
+                    const valB = b[sortBy];
+                    if (typeof valA === 'string') {
+                        return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                    return sortDir === 'asc' ? valA - valB : valB - valA;
+                });
+            }
+
+            state.filteredProposals = proposals;
+        }
+
+        function render() {
+            applyFiltersAndSort();
+            document.body.classList.toggle('presentation-active', state.currentView === 'presentation');
+
+            // Render main views
+            gridContainer.classList.toggle('hidden', state.currentView !== 'grid');
+            compareContainer.classList.toggle('hidden', state.currentView !== 'compare');
+            presentationContainer.classList.toggle('hidden', state.currentView !== 'presentation');
+
+            if (state.currentView === 'grid') renderGridView();
+            else if (state.currentView === 'compare') renderCompareView();
+            else if (state.currentView === 'presentation') renderPresentationView();
+            
+            updateControls();
+        }
+
+        function renderGridView() {
+            gridContainer.innerHTML = state.filteredProposals.map(p => createCardHTML(p, 'grid')).join('');
+        }
+        
+        function renderCompareView() {
+            const selected = state.proposals.filter(p => state.selectedProposals.includes(p.proposal));
+            compareContainer.innerHTML = selected.map(p => createCardHTML(p, 'compare')).join('');
+        }
+
+        function renderPresentationView() {
+            if(state.filteredProposals.length === 0) {
+                 presentationContainer.innerHTML = `<div class="slide"><h2 class="card-title">No proposals to display.</h2></div>`;
+                 return;
+            }
+            const plot = state.filteredProposals[state.presentationIndex];
+            presentationContainer.innerHTML = `
+                <div class="presentation-nav">
+                    <button id="prev-slide-btn">‹</button>
+                    <button id="next-slide-btn">›</button>
+                </div>
+                <div class="presentation-counter">${state.presentationIndex + 1} / ${state.filteredProposals.length}</div>
+                <div class="slide">
+                    <div class="slide-header">
+                        <h2 class="card-title">${plot.proposal}</h2>
+                        <p class="card-subtitle">${plot.media_form.join(', ')}</p>
+                    </div>
+                    <div class="metrics-grid" style="margin-top: 2rem;">
+                        ${Object.keys(plot).filter(k => typeof plot[k] === 'number').map(key => `
+                            <div class="metric">
+                                <div class="metric-label"><span>${toTitleCase(key)}</span><span>${plot[key].toFixed(2)}</span></div>
+                                <div class="bar-container"><div class="bar" style="width: ${plot[key] * 100}%"></div></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                     <div class="list-section">
+                        <details open><summary>Failure Modes</summary>
+                            <ul>${plot.failure_modes.map(item => `<li>${item}</li>`).join('')}</ul>
+                        </details>
+                    </div>
+                    <div class="list-section">
+                        <details open><summary>Stewardship Requirements</summary>
+                            <ul>${plot.stewardship_requirements.map(item => `<li>${item}</li>`).join('')}</ul>
+                        </details>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateControls() {
+            const compareBtn = document.getElementById('compare-btn');
+            const numSelected = state.selectedProposals.length;
+            compareBtn.textContent = `Compare Selected (${numSelected})`;
+            compareBtn.disabled = numSelected < 2 || numSelected > 3;
+
+            document.getElementById('view-grid-btn').classList.toggle('active', state.currentView === 'grid' || state.currentView === 'compare');
+            document.getElementById('view-presentation-btn').classList.toggle('active', state.currentView === 'presentation');
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            // Controls
+            document.getElementById('search-input').addEventListener('input', e => {
+                state.filters.searchTerm = e.target.value;
+                render();
+            });
+            document.getElementById('sort-select').addEventListener('change', e => {
+                state.filters.sortBy = e.target.value;
+                render();
+            });
+            document.getElementById('sort-direction').addEventListener('change', e => {
+                state.filters.sortDir = e.target.value;
+                render();
+            });
+
+            // View Switchers
+            document.getElementById('view-grid-btn').addEventListener('click', () => {
+                state.currentView = 'grid';
+                render();
+            });
+            document.getElementById('view-presentation-btn').addEventListener('click', () => {
+                state.currentView = 'presentation';
+                state.presentationIndex = 0; // Reset to first slide
+                render();
+            });
+            
+            // Selection & Comparison
+            document.getElementById('compare-btn').addEventListener('click', () => {
+                if (state.selectedProposals.length >= 2) {
+                    state.currentView = 'compare';
+                    render();
+                }
+            });
+            document.getElementById('clear-selection-btn').addEventListener('click', () => {
+                state.selectedProposals = [];
+                render();
+            });
+            gridContainer.addEventListener('click', e => {
+                if (e.target.classList.contains('card-select')) {
+                    const proposalId = e.target.dataset.proposalId;
+                    if (e.target.checked) {
+                        if (!state.selectedProposals.includes(proposalId)) {
+                            state.selectedProposals.push(proposalId);
+                        }
+                    } else {
+                        state.selectedProposals = state.selectedProposals.filter(id => id !== proposalId);
+                    }
+                    render();
+                }
+            });
+
+            // Presentation Mode
+            presentationContainer.addEventListener('click', e => {
+                if(e.target.id === 'presentation-container') { // click outside slide
+                    state.currentView = 'grid';
+                    render();
+                }
+                if(e.target.id === 'prev-slide-btn') navigatePresentation(-1);
+                if(e.target.id === 'next-slide-btn') navigatePresentation(1);
+            });
+            
+            document.addEventListener('keydown', e => {
+                if (state.currentView === 'presentation') {
+                    if (e.key === 'ArrowRight') navigatePresentation(1);
+                    if (e.key === 'ArrowLeft') navigatePresentation(-1);
+                    if (e.key === 'Escape') {
+                         state.currentView = 'grid';
+                         render();
+                    }
+                }
+            });
+        }
+        
+        function navigatePresentation(direction) {
+            const numSlides = state.filteredProposals.length;
+            if(numSlides === 0) return;
+            state.presentationIndex = (state.presentationIndex + direction + numSlides) % numSlides;
+            renderPresentationView();
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            render();
+        });
+    </script>
+</body>
+</html>

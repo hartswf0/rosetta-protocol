@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cultural OS — Innis Folklore Cards</title>
+<style>
+  /* =====================
+     Cultural OS — Mobile-first, high data-ink ratio
+     Aesthetic: 1950s folk-art × Tufte minimalism
+     Single-file HTML/CSS/JS, no external assets
+     ===================== */
+
+  :root {
+    /* Paper + Ink */
+    --paper: #fdfcf7;     /* warm paper */
+    --ink: #111111;       /* near-black */
+    --ink-2: #444;        /* captions */
+    --grid: #00000020;    /* hairline grid */
+    --accent: #0a0a0a;    /* accents */
+
+    /* Typescale: tuned for phone */
+    --step--1: 0.85rem;
+    --step-0: 1rem;
+    --step-1: 1.15rem;
+    --step-2: 1.35rem;
+    --step-3: 1.6rem;
+
+    /* Rhythm */
+    --gap-1: 0.5rem;
+    --gap-2: 0.75rem;
+    --gap-3: 1rem;
+    --gap-4: 1.5rem;
+
+    /* Card */
+    --card-pad: 0.9rem;
+    --radius: 14px; /* soft, midcentury curve */
+
+    /* Meters */
+    --track: linear-gradient(to right, #000 0 1px, transparent 1px) repeat-x;
+  }
+
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: ui-monospace, Menlo, Consolas, "SF Mono", "Courier New", monospace;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header / Banner */
+  .banner {
+    border-bottom: 2px solid var(--ink);
+    padding: var(--gap-3) var(--gap-3) var(--gap-2);
+    text-align: center;
+    position: sticky;
+    top: 0; backdrop-filter: blur(2px);
+    background: color-mix(in srgb, var(--paper) 92%, white 8%);
+    z-index: 10;
+  }
+  .title {
+    font-size: var(--step-2);
+    letter-spacing: 0.02em;
+    margin: 0 0 var(--gap-1) 0;
+  }
+  .subtitle {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    margin: 0 0 var(--gap-2) 0;
+  }
+  .glyph-row {
+    font-size: 0.95rem;
+    line-height: 1.1;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--ink-2);
+  }
+
+  /* Controls */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--gap-2);
+    padding: var(--gap-2) var(--gap-3);
+    border-bottom: 1px dashed var(--ink);
+    align-items: center;
+  }
+  .controls label { display: block; font-size: var(--step--1); }
+  .controls select, .controls button {
+    width: 100%;
+    font: inherit;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    border-radius: 8px;
+  }
+  .controls button { cursor: pointer; }
+
+  /* Layout */
+  .wrap { padding: var(--gap-3); }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap-3);
+  }
+  @media (min-width: 720px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1100px) {
+    .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  /* Card */
+  .card {
+    border: 1px solid var(--ink);
+    border-radius: var(--radius);
+    padding: var(--card-pad);
+    background:
+      repeating-linear-gradient(0deg, transparent 0 23px, #00000008 23px 24px),
+      var(--paper);
+    position: relative;
+  }
+  .card h3 { margin: 0 0 0.25rem 0; font-size: var(--step-1); }
+  .tagline { color: var(--ink-2); font-size: var(--step--1); margin: 0 0 var(--gap-2) 0; }
+
+  .media-chips { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0 0 var(--gap-2) 0; }
+  .chip {
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.78rem;
+    background: #fff1; backdrop-filter: blur(1px);
+  }
+
+  .metrics { display: grid; grid-template-columns: 7.5rem 1fr min-content; gap: 0.35rem 0.5rem; align-items: center; }
+  .mlabel { font-size: 0.82rem; color: var(--ink-2); }
+  .mbar {
+    --v: 0.5; /* 0..1 */
+    height: 8px; border: 1px solid var(--ink); border-radius: 999px; position: relative; background: transparent;
+  }
+  .mbar::before {
+    content: ""; position: absolute; inset: 0; border-radius: 999px; width: calc(var(--v) * 100%);
+    background: repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 5px);
+    mask: linear-gradient(90deg, #000 0 98%, transparent 98% 100%);
+  }
+  .mval { font-size: 0.82rem; color: var(--ink-2); padding-left: 0.25rem; }
+
+  .mglyph { font-size: 0.95rem; letter-spacing: 0.02em; white-space: nowrap; }
+  .meter-row { display: contents; }
+
+  .sect { margin-top: var(--gap-2); border-top: 1px dashed var(--ink); padding-top: var(--gap-2); }
+  details { border: 1px dashed var(--ink); border-radius: 10px; padding: 0.5rem 0.75rem; background: #fff3; }
+  summary { cursor: pointer; font-weight: 600; }
+  ul { margin: 0.25rem 0 0 1rem; }
+
+  .select-box {
+    position: absolute; top: 0.35rem; right: 0.4rem; font-size: 0.9rem; display: flex; gap: 0.25rem;
+    align-items: center;
+  }
+  .select-box input { width: 1rem; height: 1rem; }
+
+  /* Table view */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border-bottom: 1px solid var(--ink); padding: 0.4rem; text-align: left; font-size: 0.9rem; }
+  th { background: #00000008; position: sticky; top: calc(58px + 54px); z-index: 5; }
+
+  /* Compare */
+  .compare {
+    display: grid; gap: var(--gap-3);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) {
+    .compare { grid-template-columns: repeat(3, 1fr); }
+  }
+  .col {
+    border: 1px solid var(--ink); border-radius: var(--radius); padding: var(--card-pad);
+    background: var(--paper);
+  }
+
+  /* Footer legend */
+  .legend {
+    margin: var(--gap-4) var(--gap-3);
+    padding: var(--gap-3);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius);
+  }
+  .legend h4 { margin: 0 0 var(--gap-2) 0; }
+  .legend dl { display: grid; grid-template-columns: 10ch 1fr; gap: 0.25rem 0.75rem; margin: 0; }
+  .legend code { font-size: 0.95rem; }
+
+  /* Print */
+  @media print {
+    .banner, .controls { display: none; }
+    .grid { grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    body { color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+  <header class="banner" role="banner" aria-label="Cultural OS">
+    <div class="title">Cultural OS · Innis Folklore Engine</div>
+    <p class="subtitle">High data–ink ratio · mobile-first · print-ready · ancient OS ornaments</p>
+    <div class="glyph-row" aria-hidden="true">𓉗𓉗𓉗𓉗𓉗𓉗𓉗𓉗𓉗𓉗 · 𓃑𓃑𓃑𓃑𓃑𓃑 · ░░░░░░░░░░░░░░ · ▒▒▒▒▒▒▒▒▒▒▒▒▒▒ · ▓▓▓▓▓▓▓▓▓▓▓▓▓▓</div>
+  </header>
+
+  <section class="controls" role="region" aria-label="Controls">
+    <div>
+      <label for="view">View</label>
+      <select id="view">
+        <option value="cards">Cards</option>
+        <option value="table">Table</option>
+        <option value="compare">Compare</option>
+      </select>
+    </div>
+    <div>
+      <label for="sort">Sort by</label>
+      <select id="sort"></select>
+    </div>
+    <div>
+      <label for="encode">Encoding</label>
+      <select id="encode">
+        <option value="bars">Bars (Tufte)</option>
+        <option value="glyphs">Glyphs (Folk)</option>
+      </select>
+    </div>
+  </section>
+
+  <main class="wrap" id="app" role="main"></main>
+
+  <section class="legend" aria-label="Legend">
+    <h4>Legend · Metric → Glyph Scale</h4>
+    <dl>
+      <dt>Time Bias</dt><dd><code>𓉗</code> × 10</dd>
+      <dt>Space Bias</dt><dd><code>𓃑</code> × 6</dd>
+      <dt>Persistence</dt><dd><code>▛</code> × 14</dd>
+      <dt>Legibility (millennia)</dt><dd><code>❏</code> × 10</dd>
+      <dt>Appropriation Risk</dt><dd><code>▓</code> × 14</dd>
+      <dt>Maintenance Load</dt><dd><code>⍁</code> × 10</dd>
+      <dt>Monopoly of Knowledge</dt><dd><code>⌸</code> × 10</dd>
+      <dt>Equity Alignment</dt><dd><code>ᕰ</code> × 10</dd>
+    </dl>
+  </section>
+
+<script>
+// =========================
+// Dataset (inline, offline)
+// =========================
+const DATA = { "innis_batch": [
+  {"innis_plot": {"proposal": "The Sweetened Warning (Pacific Northwest Volcano Folktale)", "media_form": ["oral tradition", "didactic legend", "narrative shell for information"], "time_bias": 0.90, "space_bias": 0.35, "persistence": 0.80, "legibility_millennia": 0.70, "appropriation_risk": 0.40, "maintenance_load": 0.20, "monopoly_of_knowledge": 0.10, "equity_alignment": 0.90, "failure_modes": ["descendants dismiss the warning as mere myth ('you people are mad, no I'm not passing on that story')","the core survival information is lost while the dramatic shell remains","the 'three generations of passing it on as pure information' limit is reached without narrative reinforcement"], "stewardship_requirements": ["embed critical information within a compelling narrative using elements 'that people love to tell and to retell'","sweeten the information with tropes like 'beautiful women, forbidden love, grumpy gods, somebody being sacrificed into a volcano'","ensure the story is 'pleasurable to tell' so it propagates naturally beyond its pure informational value"] }},
+  {"innis_plot": {"proposal": "Hazardous Legend (Tomb of the First Emperor of China)", "media_form": ["historical stories", "oral legends", "verifiable rumor"], "time_bias": 0.85, "space_bias": 0.45, "persistence": 0.75, "legibility_millennia": 0.65, "appropriation_risk": 0.65, "maintenance_load": 0.10, "monopoly_of_knowledge": 0.25, "equity_alignment": 0.75, "failure_modes": ["the promise of 'unimaginable treasures' outweighs the deterrent of the hazard","future technology neutralizes the physical threat (the mercury), rendering the warning moot","the story is dismissed as an 'ineffectual curse,' similar to those on Egyptian tombs that 'didn't deter greedy grave robbers'"], "stewardship_requirements": ["link the legend to a real, persistent, and verifiable physical danger ('remember those lakes of mercury, that stuff is really poisonous')","ensure the hazard is long-lived, as 'radiation is 10,000 years but arsenic is forever'","allow the stories to become a functional 'warning' that forces modern explorers to 'check, confirm the presence of incredibly high quantities of mercury' before acting"] }},
+  {"innis_plot": {"proposal": "The Atomic Priesthood (Engineered Folklore for Nuclear Waste)", "media_form": ["artificially created and nurtured ritual and legend", "folkloristic devices", "expert commission"], "time_bias": 0.95, "space_bias": 0.10, "persistence": 0.60, "legibility_millennia": 0.55, "appropriation_risk": 0.80, "maintenance_load": 0.95, "monopoly_of_knowledge": 0.95, "equity_alignment": 0.05, "failure_modes": ["the ritual becomes festivalized, attracting tourism and intrusion","the meaning inverts, with future cultures misinterpreting warning symbols as auspicious ('ah, skull, symbol of fantastic candy')","the priesthood's knowledge becomes gatekept, corrupted, or dies out entirely"], "stewardship_requirements": ["entrust the 'actual quote truth' exclusively to a self-selecting 'commission of knowledgeable physicists... an atomic priesthood'","steer the uninitiated away via 'accumulated superstition to shun a certain area permanently'","create a legend 'retold year by year with presumably slight variation' that works on a cultural, not scientific, level"] }},
+  {"innis_plot": {"proposal": "Escapist Armor (Reading 'Gone with the Wind' in the Ghetto)", "media_form": ["written novel", "oral retelling", "escapist fiction"], "time_bias": 0.20, "space_bias": 0.90, "persistence": 0.40, "legibility_millennia": 0.10, "appropriation_risk": 0.10, "maintenance_load": 0.0, "monopoly_of_knowledge": 0.0, "equity_alignment": 0.95, "failure_modes": ["the story offers no relevant tools or comfort for the specific hardship","access to the story is cut off by authorities ('books were forbidden')","the act of telling the story becomes too dangerous to continue"], "stewardship_requirements": ["use storytelling to 'offer you a genuine escape from a bad place'","ensure the story can 'furnish you with armor, with knowledge, with weapons, with tools you can take back into your life'","recognize that under extreme duress, 'stories are worth risking your life for... they're worth dying for' because they provide immediate psychological survival"] }},
+  {"innis_plot": {"proposal": "Narrative Evolutionary Advantage (Cinderella's Glass Slipper)", "media_form": ["homonymic shift", "memetic mutation", "unforgettable image"], "time_bias": 0.70, "space_bias": 0.90, "persistence": 0.85, "legibility_millennia": 0.75, "appropriation_risk": 0.25, "maintenance_load": 0.0, "monopoly_of_knowledge": 0.05, "equity_alignment": 0.95, "failure_modes": ["the story becomes too familiar, losing its novelty and power","the cultural context that makes the image 'gloriously unlikely' fades","a competing version of the story with a stronger memetic hook emerges"], "stewardship_requirements": ["accept that stories 'mutate, they will change just a little,' and this drives persistence","introduce elements that are 'gloriously unlikely and stick in the memory,' like glass slippers possibly evolving from fur slippers ('vair' to 'verre')","rely on the mutation itself to give the story 'a tiny evolutionary advantage over all the stories that are kind of like' it"] }},
+  {"innis_plot": {"proposal": "Dual-Media Persistence ('The Tale of Two Brothers')", "media_form": ["papyrus scroll", "campfire story", "oral tradition"], "time_bias": 0.90, "space_bias": 0.50, "persistence": 0.95, "legibility_millennia": 0.80, "appropriation_risk": 0.50, "maintenance_load": 0.15, "monopoly_of_knowledge": 0.20, "equity_alignment": 0.80, "failure_modes": ["the written version is lost and the oral tradition dies out","the oral tradition mutates so far from the original that the core narrative is lost","cultural disruption breaks the chain of oral transmission between generations"], "stewardship_requirements": ["record stories in a durable, time-biased medium ('recorded on papyrus by a scribe about 4000 years ago')","ensure the story has memorable, shocking, or dramatic elements that fuel oral retelling (a man 'cuts off his genitalia... they are eaten by a catfish')","trust that a powerful story can survive in parallel, so one might hear 'the oral version of something that was written down 4000 years ago'"] }}
+]};
+
+// Metrics registry
+const METRICS = [
+  { key: 'time_bias', label: 'Time Bias' },
+  { key: 'space_bias', label: 'Space Bias' },
+  { key: 'persistence', label: 'Persistence' },
+  { key: 'legibility_millennia', label: 'Legibility (millennia)' },
+  { key: 'appropriation_risk', label: 'Appropriation Risk' },
+  { key: 'maintenance_load', label: 'Maintenance Load' },
+  { key: 'monopoly_of_knowledge', label: 'Monopoly of Knowledge' },
+  { key: 'equity_alignment', label: 'Equity Alignment' },
+];
+
+// Glyph scales (folk-art meters)
+const GLYPH_SCALES = {
+  time_bias: { char: '𓉗', max: 10 },
+  space_bias: { char: '𓃑', max: 6 },
+  persistence: { char: '▛', max: 14 },
+  legibility_millennia: { char: '❏', max: 10 },
+  appropriation_risk: { char: '▓', max: 14 },
+  maintenance_load: { char: '⍁', max: 10 },
+  monopoly_of_knowledge: { char: '⌸', max: 10 },
+  equity_alignment: { char: 'ᕰ', max: 10 },
+};
+
+const state = {
+  view: 'cards',
+  sort: 'proposal',
+  encode: 'bars',
+  selected: new Set(),
+};
+
+const $ = (s, root=document) => root.querySelector(s);
+const $$ = (s, root=document) => Array.from(root.querySelectorAll(s));
+
+function initControls() {
+  // Sort options
+  const sortSel = $('#sort');
+  sortSel.innerHTML = [
+    `<option value="proposal">Proposal</option>`,
+    ...METRICS.map(m => `<option value="${m.key}">${m.label}</option>`),
+  ].join('');
+
+  $('#view').addEventListener('change', (e) => { state.view = e.target.value; render(); });
+  $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
+  $('#encode').addEventListener('change', (e) => { state.encode = e.target.value; render(); });
+}
+
+function getItems() {
+  return DATA.innis_batch.map(d => d.innis_plot);
+}
+
+function bySort(a, b) {
+  const key = state.sort;
+  if (key === 'proposal') return a.proposal.localeCompare(b.proposal);
+  return (b[key] ?? 0) - (a[key] ?? 0);
+}
+
+function fmtPct(v) { return (v * 100).toFixed(0) + '%'; }
+
+function glyphMeter(key, v) {
+  const conf = GLYPH_SCALES[key] || { char: '⣿', max: 10 };
+  const n = Math.max(0, Math.min(conf.max, Math.round(v * conf.max)));
+  return `<span class="mglyph" aria-label="${key} ${fmtPct(v)}">${conf.char.repeat(n)}</span>`;
+}
+
+function barMeter(v) {
+  return `<span class="mbar" style="--v:${Math.max(0, Math.min(1, v))}"></span>`;
+}
+
+function metricRows(item) {
+  return METRICS.map(m => {
+    const v = item[m.key] ?? 0;
+    const left = `<div class="mlabel">${m.label}</div>`;
+    const mid = state.encode === 'bars' ? barMeter(v) : glyphMeter(m.key, v);
+    const right = `<div class="mval">${fmtPct(v)}</div>`;
+    return `<div class="meter-row">${left}${mid}${right}</div>`;
+  }).join('');
+}
+
+function card(item, idx) {
+  const chips = item.media_form.map(s => `<span class="chip">${s}</span>`).join('');
+  const sel = state.selected.has(idx) ? 'checked' : '';
+  return `
+  <article class="card" data-idx="${idx}">
+    <div class="select-box" title="Select for Compare">
+      <input type="checkbox" ${sel} aria-label="Select ${item.proposal} for compare" />
+    </div>
+    <h3>${item.proposal}</h3>
+    <p class="tagline">media: ${item.media_form.join(' · ')}</p>
+    <div class="media-chips">${chips}</div>
+    <div class="metrics">${metricRows(item)}</div>
+    <div class="sect">
+      <details>
+        <summary>Failure modes</summary>
+        <ul>${item.failure_modes.map(x => `<li>${x}</li>`).join('')}</ul>
+      </details>
+    </div>
+    <div class="sect">
+      <details>
+        <summary>Stewardship requirements</summary>
+        <ul>${item.stewardship_requirements.map(x => `<li>${x}</li>`).join('')}</ul>
+      </details>
+    </div>
+  </article>`;
+}
+
+function renderCards(items) {
+  const grid = document.createElement('section');
+  grid.className = 'grid';
+  grid.innerHTML = items.map(card).join('');
+  // Hook up compare selectors
+  grid.addEventListener('change', (e) => {
+    if (e.target.matches('input[type="checkbox"]')) {
+      const idx = Number(e.target.closest('.card').dataset.idx);
+      if (e.target.checked) state.selected.add(idx); else state.selected.delete(idx);
+    }
+  });
+  return grid;
+}
+
+function renderTable(items) {
+  const table = document.createElement('div');
+  table.innerHTML = `
+  <div style="overflow:auto">
+  <table aria-label="Innis table">
+    <thead>
+      <tr>
+        <th>Proposal</th>
+        ${METRICS.map(m => `<th>${m.label}</th>`).join('')}
+      </tr>
+    </thead>
+    <tbody>
+      ${items.map(it => `
+        <tr>
+          <td>${it.proposal}</td>
+          ${METRICS.map(m => `<td>${fmtPct(it[m.key] ?? 0)}</td>`).join('')}
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  </div>`;
+  return table;
+}
+
+function renderCompare(items) {
+  const picked = Array.from(state.selected).map(i => items[i]);
+  const container = document.createElement('section');
+  container.className = 'compare';
+  if (!picked.length) {
+    container.innerHTML = `<p style="color:var(--ink-2)">Select cards (top-right checkbox) to compare. Up to 3 recommended.</p>`;
+    return container;
+  }
+  picked.forEach(it => {
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.innerHTML = `
+      <h3 style="margin-top:0">${it.proposal}</h3>
+      <p class="tagline">${it.media_form.join(' · ')}</p>
+      <div class="metrics">${metricRows(it)}</div>
+      <div class="sect"><strong>Failure</strong><ul>${it.failure_modes.map(x => `<li>${x}</li>`).join('')}</ul></div>
+      <div class="sect"><strong>Stewardship</strong><ul>${it.stewardship_requirements.map(x => `<li>${x}</li>`).join('')}</ul></div>
+    `;
+    container.appendChild(col);
+  });
+  return container;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  const items = getItems().sort(bySort);
+  if (state.view === 'cards') app.appendChild(renderCards(items));
+  else if (state.view === 'table') app.appendChild(renderTable(items));
+  else app.appendChild(renderCompare(items));
+}
+
+// Initialize
+initControls();
+render();
+</script>
+</body>
+</html>

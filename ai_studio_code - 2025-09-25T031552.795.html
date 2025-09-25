@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Kimmel Affair: A Conjunctural Media Analysis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;700;900&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-header: 'Libre Franklin', sans-serif;
+            --font-body: 'Merriweather', serif;
+            --color-bg: #f8f9fa;
+            --color-text: #212529;
+            --color-primary: #0d6efd;
+            --color-secondary: #6c757d;
+            --color-accent-pro: #198754;
+            --color-accent-con: #dc3545;
+            --color-border: #dee2e6;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        body {
+            margin: 0;
+            font-family: var(--font-body);
+            font-size: 18px;
+            line-height: 1.7;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-header); font-weight: 900; margin-top: 0; line-height: 1.2; }
+
+        .container { max-width: 960px; margin: 0 auto; padding: 2rem 1rem; }
+        .grid-container { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+        @media (min-width: 992px) {
+            .grid-container { grid-template-columns: 250px 1fr; }
+        }
+
+        /* --- Header --- */
+        .main-header {
+            background: var(--card-bg);
+            text-align: center;
+            padding: 3rem 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .main-header h1 { font-size: 3.5rem; margin-bottom: 0.5rem; }
+        .main-header .subtitle { font-size: 1.2rem; color: var(--color-secondary); font-style: italic; font-family: var(--font-body); }
+
+        /* --- Sticky Nav --- */
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            align-self: start;
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+        .sticky-nav h3 { font-size: 1.2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .sticky-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sticky-nav li a {
+            display: block;
+            padding: 0.5rem 0;
+            text-decoration: none;
+            color: var(--color-secondary);
+            font-family: var(--font-header);
+            font-weight: 700;
+            transition: color 0.2s;
+        }
+        .sticky-nav li a:hover, .sticky-nav li a.active { color: var(--color-primary); }
+        @media (max-width: 991px) { .sticky-nav { display: none; } }
+
+        /* --- Main Content --- */
+        .content-section { margin-bottom: 3rem; padding-top: 2rem; border-top: 1px solid var(--color-border); }
+        .content-section:first-child { border-top: none; padding-top: 0; }
+        .content-section h2 { font-size: 2rem; margin-bottom: 1.5rem; position: relative; padding-left: 1.5rem; }
+        .content-section h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            bottom: 5px;
+            width: 5px;
+            background-color: var(--color-primary);
+            border-radius: 5px;
+        }
+
+        /* --- Specific Section Styles --- */
+        .one-sentence { font-size: 1.5rem; font-style: italic; background: #e9ecef; padding: 1.5rem; border-radius: 8px; border-left: 5px solid var(--color-primary); }
+
+        .cite {
+            color: var(--color-primary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+        .cite:hover { background-color: rgba(13, 110, 253, 0.1); }
+
+        .data-card { background: var(--card-bg); padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 1rem; }
+        .data-card h3 { font-size: 1.25rem; margin-bottom: 1rem; }
+        .data-card strong { color: var(--color-primary); }
+
+        /* Timeline */
+        .timeline { border-left: 3px solid var(--color-border); padding-left: 1.5rem; }
+        .timeline-item { position: relative; margin-bottom: 1.5rem; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px; top: 5px; width: 15px; height: 15px;
+            background: var(--color-bg); border: 3px solid var(--color-primary); border-radius: 50%;
+        }
+        .timeline-item strong { color: var(--color-accent-con); }
+
+        /* Field of Forces */
+        .forces-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        @media (min-width: 768px) { .forces-grid { grid-template-columns: 1fr 1fr; } }
+        .force-bloc h3 { border-bottom: 3px solid; padding-bottom: 0.5rem; }
+        .force-bloc.popular h3 { border-color: var(--color-accent-pro); }
+        .force-bloc.power h3 { border-color: var(--color-accent-con); }
+        .force-bloc ul { list-style: none; padding: 0; }
+        .force-bloc li { background: #f8f9fa; padding: 0.5rem 1rem; border-radius: 5px; margin-bottom: 0.5rem; }
+
+        /* Data Visualization - Bar Charts */
+        .chart-container { margin-top: 1.5rem; }
+        .chart-title { font-weight: 700; font-family: var(--font-header); margin-bottom: 0.5rem; }
+        .bar {
+            height: 30px;
+            background-color: var(--color-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-family: var(--font-header);
+            font-weight: 700;
+            border-radius: 0 5px 5px 0;
+            width: 0;
+            opacity: 0;
+            transition: width 1s ease-out, opacity 1s ease-out;
+        }
+        .bar.visible { opacity: 1; }
+        .bar.dominant { background-color: var(--color-accent-pro); }
+        .bar.negotiated { background-color: var(--color-secondary); }
+        .bar.oppositional { background-color: var(--color-accent-con); }
+        .bar-label { display: block; margin-bottom: 5px; font-style: italic; }
+
+        /* Source Map & Headline Harvest */
+        .source-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        .source-card {
+            background: var(--card-bg); padding: 1rem; border-radius: 8px;
+            box-shadow: var(--shadow); border: 1px solid var(--color-border);
+            display: flex; flex-direction: column;
+        }
+        .source-card .source-id {
+            font-family: var(--font-header); font-weight: 900; font-size: 1.5rem;
+            color: var(--color-primary); margin-bottom: 0.5rem;
+        }
+        .source-card p { margin: 0 0 1rem 0; flex-grow: 1; }
+        .source-card a {
+            display: inline-block; padding: 0.5rem 1rem; background: var(--color-primary);
+            color: white; text-decoration: none; text-align: center;
+            border-radius: 5px; font-family: var(--font-header); font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .source-card a:hover { background-color: #0b5ed7; }
+
+        /* --- Modal for Citations --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: flex;
+            justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000;
+        }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 8px;
+            max-width: 600px; width: 90%;
+            transform: scale(0.95); transition: transform 0.3s;
+        }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h3 { margin-top: 0; }
+        .modal-content a { color: var(--color-primary); }
+        .modal-close {
+            background: var(--color-primary); color: white; border: none;
+            padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;
+            display: block; margin-top: 1.5rem; float: right;
+            font-family: var(--font-header); font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <h1>The Kimmel Affair</h1>
+        <p class="subtitle">A Conjunctural Media Analysis of a Free Speech Firestorm (September 2025)</p>
+    </header>
+
+    <div class="container grid-container">
+        <aside class="sticky-nav" id="sticky-nav">
+            <h3>Table of Contents</h3>
+            <ul id="nav-links">
+                <li><a href="#conjuncture">Conjuncture</a></li>
+                <li><a href="#periodisation">Periodisation</a></li>
+                <li><a href="#forces">Field of Forces</a></li>
+                <li><a href="#mechanisms">Mechanisms</a></li>
+                <li><a href="#encoding">Encoding/Decoding</a></li>
+                <li><a href="#aggregates">Aggregates</a></li>
+                <li><a href="#governance">Governance</a></li>
+                <li><a href="#methodology">Methodology</a></li>
+                <li><a href="#sourcemap">Source Map</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <section id="conjuncture" class="content-section">
+                <h2>One-Sentence Conjuncture</h2>
+                <p class="one-sentence">
+                    ABC’s suspension and on-air reinstatement of Jimmy Kimmel amid pressure from Trump-aligned actors triggered a cross-platform fight over free-speech norms and institutional authority. <span class="cite" data-source="S02">[S02]</span><span class="cite" data-source="S05">[S05]</span>
+                </p>
+            </section>
+
+            <section id="periodisation" class="content-section">
+                <h2>Periodisation & Conjuncture Scan</h2>
+                <div class="data-card">
+                    <h3>Key Breakpoints</h3>
+                    <div class="timeline">
+                        <div class="timeline-item"><strong>B1 (Sep 15–17):</strong> Remarks → ABC suspension; FCC signaling; affiliate pre-emptions. <span class="cite" data-source="S03">[S03]</span><span class="cite" data-source="S04">[S04]</span><span class="cite" data-source="S23">[S23]</span></div>
+                        <div class="timeline-item"><strong>B2 (Sep 23–24):</strong> On-air return + rights-defense monologue; partial blackout persists; linear ratings surge. <span class="cite" data-source="S02">[S02]</span><span class="cite" data-source="S05">[S05]</span><span class="cite" data-source="S27">[S27]</span></div>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <h3>Indicators of Shift</h3>
+                    <p><strong>Apparatus Shift:</strong> Rapid social video uptake (YouTube/IG) with 14M+ aggregate views. <span class="cite" data-source="S06">[S06]</span><span class="cite" data-source="S09">[S09]</span></p>
+                    <p><strong>Rule/Policy Shift:</strong> FCC chair’s posture + affiliate discretion used as a distribution throttle. <span class="cite" data-source="S23">[S23]</span><span class="cite" data-source="S04">[S04]</span></p>
+                    <p><strong>Audience/Market Shift:</strong> Broadcast audience spikes to <strong>6.3M</strong> despite pre-emptions. <span class="cite" data-source="S05">[S05]</span></p>
+                    <p><strong>Disjuncture Score:</strong> <strong>0.72</strong> (A notable breach in late-night norms within an ongoing censorship/satire struggle).</p>
+                </div>
+            </section>
+
+            <section id="forces" class="content-section">
+                <h2>Field of Forces</h2>
+                <div class="forces-grid">
+                    <div class="force-bloc popular">
+                        <h3>Popular Side (Coalitional)</h3>
+                        <ul>
+                            <li>Late-night hosts, actors’ unions</li>
+                            <li>Civil-liberties groups</li>
+                            <li>Select conservative figures <span class="cite" data-source="S21">[S21]</span><span class="cite" data-source="S07">[S07]</span></li>
+                        </ul>
+                    </div>
+                    <div class="force-bloc power">
+                        <h3>Power-Bloc</h3>
+                        <ul>
+                            <li>ABC/Disney management</li>
+                            <li>FCC leadership, Trump orbit</li>
+                            <li>Sinclair/Nexstar affiliates <span class="cite" data-source="S23">[S23]</span><span class="cite" data-source="S31">[S31]</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="mechanisms" class="content-section">
+                <h2>Mechanisms of Transformation</h2>
+                <div class="data-card">
+                     <ul>
+                        <li><strong>Ban/Proscription:</strong> Affiliate pre-emptions throttled linear reach. <span class="cite" data-source="S04">[S04]</span></li>
+                        <li><strong>Policing/Enforcement:</strong> FCC threat signaling prompted corporate compliance. <span class="cite" data-source="S23">[S23]</span></li>
+                        <li><strong>Commercial Insertion:</strong> Platform virality (YouTube/IG) circumvented station bans. <span class="cite" data-source="S09">[S09]</span></li>
+                        <li><strong>Appropriation:</strong> Monologue reframed the event as a civics lesson on satire. <span class="cite" data-source="S02">[S02]</span></li>
+                        <li><strong>Incorporation:</strong> Industry statements folded the controversy into mainstream discourse. <span class="cite" data-source="S21">[S21]</span></li>
+                    </ul>
+                </div>
+            </section>
+            
+            <section id="encoding" class="content-section">
+                <h2>Encoding → Circulation → Decoding</h2>
+                <div class="data-card">
+                    <h3>Decoding Mix (Posterior)</h3>
+                    <p>The event polarized audiences, shrinking the "negotiated" middle ground.</p>
+                    <div class="chart-container">
+                        <div class="chart-title">Audience Reading (After Event)</div>
+                        <span class="bar-label">Preferred / Dominant</span>
+                        <div class="bar dominant" data-width="42%">42%</div>
+                        <span class="bar-label">Negotiated</span>
+                        <div class="bar negotiated" data-width="21%">21%</div>
+                        <span class="bar-label">Oppositional</span>
+                        <div class="bar oppositional" data-width="37%">37%</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="aggregates" class="content-section">
+                <h2>Aggregates (from 22 media items)</h2>
+                <div class="data-card">
+                    <h3>Top 4 Frame Presence</h3>
+                    <div class="chart-container">
+                        <span class="bar-label">Rights Claim</span>
+                        <div class="bar" data-width="59%">59%</div>
+                        <span class="bar-label">Institutional Order</span>
+                        <div class="bar" data-width="55%">55%</div>
+                        <span class="bar-label">Restoration/Return</span>
+                        <div class="bar" data-width="36%">36%</div>
+                        <span class="bar-label">Market Performance</span>
+                        <div class="bar" data-width="23%">23%</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="governance" class="content-section">
+                <h2>Governance-by-Design (Law in Hiding)</h2>
+                <div class="data-card">
+                    <p>Concrete mechanisms visible in the corpus: <strong>regulatory threat vectors (FCC)</strong> → <strong>corporate compliance (suspension)</strong> → <strong>affiliate throttles (pre-emptions)</strong> → <strong>platform counter-circuits (viral clips)</strong>.</p>
+                    <p>Together they script who can see what, where, and when—without a single statute being passed. <span class="cite" data-source="S23">[S23]</span><span class="cite" data-source="S04">[S04]</span><span class="cite" data-source="S27">[S27]</span></p>
+                </div>
+            </section>
+            
+            <section id="methodology" class="content-section">
+                <h2>Methodological Footing (Hall + PLoT)</h2>
+                <div class="data-card">
+                    <p><strong>Stuart Hall:</strong> Encodings identified via frames and actor-centering; decodings modeled as <strong>dominant / negotiated / oppositional</strong> based on audience profile and outlet trust. <span class="cite" data-source="S10">[S10]</span><span class="cite" data-source="S22">[S22]</span></p>
+                    <p><strong>PLoT:</strong> Priors from academic/context sources <span class="cite" data-source="S11">[S11]</span>-<span class="cite" data-source="S20">[S20]</span>; headline evidence updates posteriors. Proportions are reported with <strong>(n/N, %)</strong> and <strong>[Sxx]</strong> hooks for auditability.</p>
+                </div>
+            </section>
+
+            <section id="sourcemap" class="content-section">
+                <h2>Source Map</h2>
+                <div class="source-grid" id="source-grid">
+                    <!-- Source cards will be injected here by JavaScript -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content" id="modal-content">
+            <!-- Modal content will be injected here -->
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sources = {
+            S01: { outlet: "Fox News", title: "Trump calls ABC’s Jimmy Kimmel support…", url: "https://www.foxnews.com/media/trump-calls-abcs-jimmy-kimmel-support-major-illegal-campaign-contribution-democrats" },
+            S02: { outlet: "CNN", title: "Monologue transcript (Kimmel return)", url: "https://www.cnn.com/2025/09/24/business/monologue-transcript-kimmel-return" },
+            S03: { outlet: "Fox News", title: "Kimmel chokes up… never intended…", url: "https://www.foxnews.com/media/jimmy-kimmel-chokes-up-he-explains-kirk-comments-says-he-never-intended-mock-assassination" },
+            S04: { outlet: "AP", title: "Suspension reaction", url: "https://apnews.com/article/jimmy-kimmel-suspended-reaction-03c1ae9d16a4a47481e855de1668def3" },
+            S05: { outlet: "CNN", title: "Ratings on return (6.3m)", url: "https://www.cnn.com/2025/09/24/media/ratings-jimmy-kimmel-return-abc-broadcast" },
+            S06: { outlet: "NY Mag/Intelligencer", title: "Reactions to return", url: "https://nymag.com/intelligencer/article/how-did-trump-and-others-react-to-jimmy-kimmels-return.html" },
+            S07: { outlet: "CNN", title: "Supporters & reactions", url: "https://www.cnn.com/2025/09/24/entertainment/reaction-jimmy-kimmel-monologue-supporters" },
+            S08: { outlet: "Fox News", title: "Not good enough", url: "https://www.foxnews.com/media/conservatives-say-kimmels-attempt-clarify-charlie-kirk-comments-not-good-enough" },
+            S09: { outlet: "YouTube", title: "Kimmel return clip #1", url: "https://www.youtube.com/watch?v=EHNYV71fKQ4" },
+            S10: { outlet: "BBC", title: "Kimmel regret/no apology", url: "https://www.bbc.com/news/articles/c0r09qdnd4yo" },
+            S11: { outlet: "Madison Proceedings", title: "Academic analysis", url: "https://madison-proceedings.com/index.php/aehssr/article/view/1410" },
+            S12: { outlet: "Cambridge", title: "Academic book", url: "https://www.cambridge.org/core/product/identifier/9781009432092/type/book" },
+            S13: { outlet: "Academia.edu.pk", title: "Academic journal", url: "https://academia.edu.pk/index.php/Journals/article/view/257" },
+            S14: { outlet: "Contemporary Journal", title: "Academic journal", url: "https://contemporaryjournal.com/index.php/14/article/view/1037" },
+            S15: { outlet: "Semantic Scholar", title: "Academic paper A", url: "https://www.semanticscholar.org/paper/2503a5f4eacc10559554e446f6edd9aa16746bd1" },
+            S16: { outlet: "Semantic Scholar", title: "Academic paper B", url: "https://www.semanticscholar.org/paper/23f9103861651e3af08f675438d7e9da9020f2ba" },
+            S17: { outlet: "ETH Research", title: "Research collection", url: "http://hdl.handle.net/20.500.11850/484661" },
+            S18: { outlet: "SAGE", title: "Academic journal", url: "https://journals.sagepub.com/doi/10.1177/01968599211039211" },
+            S19: { outlet: "Semantic Scholar", title: "Academic paper C", url: "https://www.semanticscholar.org/paper/1fe74fd4e57c77b9cbd9d2a7f6c6281aa8ace022" },
+            S20: { outlet: "SSRN", title: "Policy paper", url: "http://www.ssrn.com/abstract=2070596" },
+            S21: { outlet: "Hollywood Reporter", title: "Industry & politicians react", url: "https://www.hollywoodreporter.com/tv/tv-news/hollywood-politicians-react-jimmy-kimmel-live-suspension-1236374303/" },
+            S22: { outlet: "BBC", title: "Follow-up explainer", url: "https://www.bbc.com/news/articles/c9dx6dlelw8o" },
+            S23: { outlet: "Fox News", title: "Kimmel slams FCC chair", url: "https://www.foxnews.com/media/jimmy-kimmel-late-night-return-slams-fcc-chair-free-speech-pivot" },
+            S24: { outlet: "CNN", title: "5 things: Kimmel + UN + climate…", url: "https://www.cnn.com/2025/09/24/us/5-things-to-know-for-sept-24-jimmy-kimmel-trumps-un-speech-climate-change-typhoon-ragasa-epstein-files" },
+            S25: { outlet: "Fox News", title: "TPUSA rejects apology", url: "https://www.foxnews.com/media/turning-point-usa-rejects-jimmy-kimmels-tearful-apology-over-charlie-kirk-death-comment" },
+            S26: { outlet: "Fox News", title: "Roseanne ‘double standard’", url: "https://www.foxnews.com/entertainment/roseanne-barr-double-standard-jimmy-kimmel-returns-late-night-show-suspension" },
+            S27: { outlet: "CNN", title: "Video round-up / hosts reactions", url: "https://www.cnn.com/2025/09/24/business/video/jimmy-kimmel-abc-return-late-night-hosts-reactions-cprog-digvid" },
+            S28: { outlet: "USA Today", title: "Trump post & Disney", url: "https://www.usatoday.com/story/news/politics/2025/09/24/trump-post-jimmy-kimmel-charlie-kirk-disney/86306454007/" },
+            S29: { outlet: "Yahoo (syndicated)", title: "Fox anchor rails…", url: "https://www.yahoo.com/entertainment/tv/articles/fox-news-anchor-bitterly-rails-123322664.html" },
+            S30: { outlet: "CNN", title: "Monologue easter egg", url: "https://www.cnn.com/2025/09/24/entertainment/video/jimmy-kimmel-monologue-easter-egg-vrtc" },
+            S31: { outlet: "CNN", title: "Trump–ABC threat / Disney", url: "https://www.cnn.com/2025/09/24/media/trump-abc-threat-jimmy-kimmel-disney" },
+            S32: { outlet: "Fox News", title: "Norman Lear post (pre-return)", url: "https://www.foxnews.com/media/jimmy-kimmel-posts-photo-norman-lear-social-media-ahead-return" }
+        };
+
+        // --- Populate Source Grid ---
+        const sourceGrid = document.getElementById('source-grid');
+        for (const [id, data] of Object.entries(sources)) {
+            const card = document.createElement('div');
+            card.className = 'source-card';
+            card.innerHTML = `
+                <div class="source-id">${id}</div>
+                <p><strong>${data.outlet}:</strong> ${data.title}</p>
+                <a href="${data.url}" target="_blank" rel="noopener noreferrer">View Source</a>
+            `;
+            sourceGrid.appendChild(card);
+        }
+
+        // --- Interactive Citations & Modal ---
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContent = document.getElementById('modal-content');
+        document.querySelectorAll('.cite').forEach(cite => {
+            cite.addEventListener('click', () => {
+                const sourceId = cite.dataset.source;
+                const sourceData = sources[sourceId];
+                if (sourceData) {
+                    modalContent.innerHTML = `
+                        <h3>Source: ${sourceId}</h3>
+                        <p><strong>Outlet:</strong> ${sourceData.outlet}</p>
+                        <p><strong>Title:</strong> ${sourceData.title}</p>
+                        <a href="${sourceData.url}" target="_blank" rel="noopener noreferrer">Open Link in New Tab</a>
+                        <button class="modal-close">Close</button>
+                    `;
+                    modalOverlay.classList.add('visible');
+                }
+            });
+        });
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay || e.target.classList.contains('modal-close')) {
+                modalOverlay.classList.remove('visible');
+            }
+        });
+
+        // --- Animate Charts on Scroll ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const bars = entry.target.querySelectorAll('.bar');
+                    bars.forEach(bar => {
+                        bar.style.width = bar.dataset.width;
+                        bar.classList.add('visible');
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.chart-container').forEach(chart => {
+            observer.observe(chart);
+        });
+        
+        // --- Sticky Nav Active State on Scroll ---
+        const navLinks = document.querySelectorAll('#nav-links a');
+        const sections = document.querySelectorAll('.content-section');
+        
+        const navObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    navLinks.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href').substring(1) === entry.target.id);
+                    });
+                }
+            });
+        }, { rootMargin: "-50% 0px -50% 0px" });
+
+        sections.forEach(section => navObserver.observe(section));
+
+    });
+    </script>
+</body>
+</html>
